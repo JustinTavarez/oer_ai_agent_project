@@ -9,15 +9,15 @@ const features = [
     icon: "01",
   },
   {
-    title: "Intelligent Search",
+    title: "Helps instructors find content faster",
     description:
-      "Find open educational resources with conversational intent instead of rigid keyword matching.",
+      "Automatically scans syllabi and OER libraries to suggest relevant resources, instead of manual searching for content.",
     icon: "02",
   },
   {
-    title: "Chat-First Experience",
+    title: "Gives reliable, evaluated results",
     description:
-      "Ask, refine, and learn through a clean chat UI that guides you from question to resource.",
+      "Uses a structured rubric and real data from GGC syllabi and OER librarie from OpenALG to return accurate, verified resources that meet learning outcomes and not just a list of random results from the web.",
     icon: "03",
   },
 ];

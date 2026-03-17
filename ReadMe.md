@@ -71,6 +71,13 @@ cd backend
 pip install fastapi uvicorn requests pydantic
 uvicorn main:app --reload
 ```
+If already install:
+```bash
+cd backend
+source venv/bin/activate
+uvicorn app.main:app --reload
+```
+
 
 The API runs at [http://localhost:8000](http://localhost:8000).
 
