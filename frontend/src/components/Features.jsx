@@ -3,9 +3,9 @@ import { motion } from "framer-motion";
 
 const features = [
   {
-    title: "Local and Private",
+    title: "Lower student costs",
     description:
-      "Powered by a local LLM through LM Studio so your prompts and workflows stay on your machine.",
+      "Use AI to automate evaluation and recommendations for your students.",
     icon: "01",
   },
   {

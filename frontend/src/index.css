@@ -31,6 +31,31 @@
   }
 }
 
+@keyframes gradient-shift {
+  0%,
+  100% {
+    transform: scale(1) translate3d(0, 0, 0);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(1.08) translate3d(0, -14px, 0);
+    opacity: 1;
+  }
+}
+
+@keyframes typing-dot {
+  0%,
+  80%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.45;
+  }
+  40% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+}
+
 @layer base {
   html {
     scroll-behavior: smooth;
@@ -57,5 +82,14 @@
 
   .animate-pulse-glow {
     animation: pulse-glow 2.6s ease-in-out infinite;
+  }
+
+  .animate-gradient-shift {
+    animation: gradient-shift 14s ease-in-out infinite;
+    transform-origin: center;
+  }
+
+  .typing-dot {
+    animation: typing-dot 1.2s ease-in-out infinite;
   }
 }

@@ -1,5 +1,6 @@
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import heroImg from "../assets/Ai-background.jpeg";
 
 const containerVariants = {
@@ -51,12 +52,12 @@ export default function Hero() {
             materials, and turn search into a guided conversation.
           </motion.p>
           <motion.div className="flex flex-wrap gap-4" variants={itemVariants}>
-            <a
-              href="#get-started"
+            <Link
+              to="/chat"
               className="rounded-full bg-gradient-to-r from-brand to-indigo-500 px-6 py-3 text-sm font-semibold text-white transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-brand/40"
             >
               Get Started
-            </a>
+            </Link>
             <a
               href="#features"
               className="rounded-full border border-white/25 bg-white/5 px-6 py-3 text-sm font-semibold text-white transition-all duration-300 hover:scale-105 hover:bg-white/10"

@@ -9,13 +9,13 @@ const steps = [
   },
   {
     step: "Step 02",
-    title: "Search",
+    title: "Search for resources",
     description: "The AI explores relevant open resources and narrows down the best matches.",
   },
   {
     step: "Step 03",
     title: "Learn",
-    description: "Review curated materials and keep refining through conversation.",
+    description: "Review curated materials and keep refining through conversations.",
   },
 ];
 

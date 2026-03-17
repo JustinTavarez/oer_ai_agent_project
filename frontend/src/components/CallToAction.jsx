@@ -1,5 +1,6 @@
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 
 export default function CallToAction() {
   return (
@@ -15,15 +16,14 @@ export default function CallToAction() {
           Ready to explore smarter with AI?
         </h2>
         <p className="mx-auto mt-5 max-w-2xl text-sm leading-relaxed text-indigo-100 md:text-base">
-          Launch the app locally, connect your model in LM Studio, and start discovering
-          educational resources through conversation.
+          Click the button below to get started.
         </p>
-        <a
-          href="#top"
+        <Link
+          to="/chat"
           className="animate-pulse-glow mt-8 inline-flex rounded-full bg-white px-6 py-3 text-sm font-semibold text-indigo-700 transition-transform duration-300 hover:scale-105"
         >
-          Start Building
-        </a>
+          Start chatting
+        </Link>
       </motion.div>
     </section>
   );
