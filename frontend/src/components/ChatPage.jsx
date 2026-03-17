@@ -5,6 +5,8 @@ import StatusIndicator from "./StatusIndicator";
 import ResourceCard from "./ResourceCard";
 import SearchHistory, { addToHistory } from "./SearchHistory";
 
+const MotionDiv = motion.div;
+
 const COURSES = [
   { value: "", label: "All Courses" },
   { value: "ENGL 1101", label: "ENGL 1101" },
@@ -115,7 +117,7 @@ export default function ChatPage() {
       <div className="pointer-events-none absolute -left-14 top-24 h-56 w-56 animate-float rounded-full bg-brand/25 blur-3xl" />
       <div className="pointer-events-none absolute -right-12 bottom-20 h-72 w-72 animate-float rounded-full bg-indigo-500/25 blur-3xl [animation-delay:900ms]" />
 
-      <motion.div
+      <MotionDiv
         className="mx-auto flex h-[80vh] w-full max-w-5xl flex-col overflow-hidden rounded-4xl border border-white/15 bg-black/35 shadow-[0_30px_90px_rgba(0,0,0,0.45)] backdrop-blur-xl"
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
@@ -295,7 +297,7 @@ export default function ChatPage() {
             </button>
           </form>
         </div>
-      </motion.div>
+      </MotionDiv>
     </section>
   );
 }

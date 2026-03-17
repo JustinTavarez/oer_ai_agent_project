@@ -56,7 +56,7 @@ export default function Hero() {
               to="/chat"
               className="rounded-full bg-gradient-to-r from-brand to-indigo-500 px-6 py-3 text-sm font-semibold text-white transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-brand/40"
             >
-              Get Started
+              Start Chatting Now
             </Link>
             <a
               href="#features"

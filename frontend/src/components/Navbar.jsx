@@ -5,7 +5,6 @@ import { Link } from "react-router-dom";
 const links = [
   { href: "/#features", label: "Features" },
   { href: "/#how-it-works", label: "How It Works" },
-  { href: "/#get-started", label: "Get Started" },
 ];
 
 export default function Navbar() {
