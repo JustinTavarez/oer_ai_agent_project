@@ -11,7 +11,7 @@ const features = [
   {
     title: "Helps instructors find content faster",
     description:
-      "Automatically scans syllabi and OER libraries to suggest relevant resources, instead of manual searching for content.",
+      "Automatically scans GGC syllabi and OER libraries to suggest relevant resources, instead of manual searching for content.",
     icon: "02",
   },
   {
