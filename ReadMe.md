@@ -77,6 +77,13 @@ cd backend
 source venv/bin/activate
 uvicorn app.main:app --reload
 ```
+### For Windows backend:
+```bash
+Do this in backend (PowerShell)
+py -m venv venv.\venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+python -m uvicorn app.main:app
+```
 
 
 The API runs at [http://localhost:8000](http://localhost:8000).
