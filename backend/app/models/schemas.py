@@ -1,6 +1,9 @@
-from typing import Optional
+from typing import Any, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+
+_SAFE_BOOL_TRUE = {True, 1, "true", "True", "TRUE"}
+_SAFE_BOOL_FALSE = {False, 0, "false", "False", "FALSE"}
 
 
 class ChatRequest(BaseModel):
@@ -35,18 +38,30 @@ class SearchResultMetadata(BaseModel):
     has_accessibility_info: bool = False
     has_supplementary_materials: bool = False
 
+    @field_validator("has_accessibility_info", "has_supplementary_materials", mode="before")
+    @classmethod
+    def _coerce_safe_bool(cls, v: Any) -> bool:
+        if v in _SAFE_BOOL_TRUE:
+            return True
+        if v in _SAFE_BOOL_FALSE:
+            return False
+        raise ValueError(
+            f"Unsafe boolean value: {v!r}. "
+            f"Accepted: True, False, 0, 1, 'true', 'false'."
+        )
+
 
 class SearchResult(BaseModel):
     id: str
     content: str
-    title: str
-    source: str
-    course_code: str
-    license: str
-    url: str
-    chunk_index: int
+    title: str = ""
+    source: str = ""
+    course_code: str = ""
+    license: str = ""
+    url: str = ""
+    chunk_index: int = 0
     score: float
-    metadata: SearchResultMetadata
+    metadata: SearchResultMetadata = Field(default_factory=SearchResultMetadata)
 
 
 class GroundedResponse(BaseModel):
