@@ -56,7 +56,14 @@ export default function Features() {
             A modern way to discover and use free learning content.
           </h2>
         </motion.div>
+        
+        <p className="text-medium leading-relaxed text-text-muted">
+        The OER AI Agent helps educators efficiently find high-quality, low to no cost learning materials that align with their courses. Instead of spending hours searching through different platforms and trying to evaluate resources on their own, instructors can receive clear, organized recommendations in one place. This allows them to quickly identify materials that fit their teaching goals, are appropriate for their students, and can be confidently integrated into their curriculum. By simplifying this process, the tool supports better decision-making while giving instructors more time to focus on instruction and student engagement.
+        Access to affordable course materials has a direct impact on student success. Many students face financial barriers when purchasing required textbooks, which can affect their ability to fully participate in a course. By making it easier for instructors to adopt open educational resources, the OER AI Agent helps reduce these barriers and promotes a more inclusive learning environment. It supports institutions in expanding access to education while maintaining quality, and it empowers educators to provide meaningful learning experiences without adding unnecessary cost for their students.
+        </p>
 
+        <br></br>
+        <br></br>
         <motion.div
           className="grid gap-6 md:grid-cols-3"
           variants={container}
