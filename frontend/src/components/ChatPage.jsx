@@ -112,7 +112,7 @@ export default function ChatPage() {
   };
 
   return (
-    <section className="relative overflow-hidden px-6 py-14 md:px-10 md:py-16">
+    <section className="relative overflow-hidden px-6 pt-24 pb-14 md:px-10 md:pb-16">
       <div className="pointer-events-none absolute inset-0 -z-10 animate-gradient-shift bg-[radial-gradient(circle_at_15%_20%,rgba(170,59,255,0.2),transparent_42%),radial-gradient(circle_at_85%_15%,rgba(59,130,246,0.16),transparent_36%),radial-gradient(circle_at_50%_90%,rgba(129,140,248,0.14),transparent_45%)] dark:bg-[radial-gradient(circle_at_15%_20%,rgba(170,59,255,0.32),transparent_42%),radial-gradient(circle_at_85%_15%,rgba(59,130,246,0.24),transparent_36%),radial-gradient(circle_at_50%_90%,rgba(129,140,248,0.22),transparent_45%)]" />
       <div className="pointer-events-none absolute -left-14 top-24 h-56 w-56 animate-float rounded-full bg-brand/20 blur-3xl dark:bg-brand/25" />
       <div className="pointer-events-none absolute -right-12 bottom-20 h-72 w-72 animate-float rounded-full bg-indigo-500/18 blur-3xl [animation-delay:900ms] dark:bg-indigo-500/25" />
