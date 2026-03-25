@@ -43,7 +43,7 @@ const item = {
 export default function Features() {
   return (
     <section id="features" className="px-6 py-24 md:px-10">
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-6xl rounded-4xl border border-slate-900/12 bg-white/72 p-6 shadow-[0_16px_50px_rgba(15,23,42,0.13)] backdrop-blur-sm dark:border-white/12 dark:bg-slate-950/38 dark:shadow-[0_18px_60px_rgba(0,0,0,0.45)] md:p-10">
         <motion.div
           className="mb-12 max-w-2xl space-y-4"
           initial={{ opacity: 0, y: 24 }}
@@ -51,8 +51,8 @@ export default function Features() {
           viewport={{ once: true, amount: 0.3 }}
           transition={{ duration: 0.7 }}
         >
-          <p className="text-sm font-medium tracking-[0.16em] text-brand-light">WHY OER AI AGENT</p>
-          <h2 className="text-3xl font-semibold tracking-tight text-white md:text-5xl">
+          <p className="text-sm font-medium tracking-[0.16em] text-brand dark:text-brand-light">WHY OER AI AGENT</p>
+          <h2 className="text-3xl font-semibold tracking-tight text-slate-900 dark:text-white md:text-5xl">
             A modern way to discover and use free learning content.
           </h2>
         </motion.div>
@@ -75,12 +75,12 @@ export default function Features() {
             <motion.article
               key={feature.title}
               variants={item}
-              className="group rounded-3xl border border-white/12 bg-white/[0.04] p-7 transition-all duration-300 hover:-translate-y-1 hover:border-brand/60 hover:shadow-2xl hover:shadow-brand/20"
+              className="group rounded-3xl border border-slate-900/12 bg-white/65 p-7 transition-all duration-300 hover:-translate-y-1 hover:border-brand/60 hover:shadow-2xl hover:shadow-brand/20 dark:border-white/12 dark:bg-white/[0.04]"
             >
-              <span className="mb-5 inline-flex rounded-full border border-white/20 bg-white/5 px-3 py-1 text-xs font-semibold text-slate-200">
+              <span className="mb-5 inline-flex rounded-full border border-slate-900/15 bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700 dark:border-white/20 dark:bg-white/5 dark:text-slate-200">
                 {feature.icon}
               </span>
-              <h3 className="mb-3 text-xl font-semibold text-white">{feature.title}</h3>
+              <h3 className="mb-3 text-xl font-semibold text-slate-900 dark:text-white">{feature.title}</h3>
               <p className="text-sm leading-relaxed text-text-muted">{feature.description}</p>
             </motion.article>
           ))}

@@ -113,24 +113,24 @@ export default function ChatPage() {
 
   return (
     <section className="relative overflow-hidden px-6 py-14 md:px-10 md:py-16">
-      <div className="pointer-events-none absolute inset-0 -z-10 animate-gradient-shift bg-[radial-gradient(circle_at_15%_20%,rgba(170,59,255,0.32),transparent_42%),radial-gradient(circle_at_85%_15%,rgba(59,130,246,0.24),transparent_36%),radial-gradient(circle_at_50%_90%,rgba(129,140,248,0.22),transparent_45%)]" />
-      <div className="pointer-events-none absolute -left-14 top-24 h-56 w-56 animate-float rounded-full bg-brand/25 blur-3xl" />
-      <div className="pointer-events-none absolute -right-12 bottom-20 h-72 w-72 animate-float rounded-full bg-indigo-500/25 blur-3xl [animation-delay:900ms]" />
+      <div className="pointer-events-none absolute inset-0 -z-10 animate-gradient-shift bg-[radial-gradient(circle_at_15%_20%,rgba(170,59,255,0.2),transparent_42%),radial-gradient(circle_at_85%_15%,rgba(59,130,246,0.16),transparent_36%),radial-gradient(circle_at_50%_90%,rgba(129,140,248,0.14),transparent_45%)] dark:bg-[radial-gradient(circle_at_15%_20%,rgba(170,59,255,0.32),transparent_42%),radial-gradient(circle_at_85%_15%,rgba(59,130,246,0.24),transparent_36%),radial-gradient(circle_at_50%_90%,rgba(129,140,248,0.22),transparent_45%)]" />
+      <div className="pointer-events-none absolute -left-14 top-24 h-56 w-56 animate-float rounded-full bg-brand/20 blur-3xl dark:bg-brand/25" />
+      <div className="pointer-events-none absolute -right-12 bottom-20 h-72 w-72 animate-float rounded-full bg-indigo-500/18 blur-3xl [animation-delay:900ms] dark:bg-indigo-500/25" />
 
       <MotionDiv
-        className="mx-auto flex h-[80vh] w-full max-w-5xl flex-col overflow-hidden rounded-4xl border border-white/15 bg-black/35 shadow-[0_30px_90px_rgba(0,0,0,0.45)] backdrop-blur-xl"
+        className="mx-auto flex h-[80vh] w-full max-w-5xl flex-col overflow-hidden rounded-4xl border border-slate-900/20 bg-white/86 shadow-[0_30px_90px_rgba(15,23,42,0.22)] backdrop-blur-xl dark:border-white/20 dark:bg-slate-950/62 dark:shadow-[0_30px_90px_rgba(0,0,0,0.55)]"
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, ease: "easeOut" }}
       >
         {/* Header */}
-        <div className="flex flex-col gap-3 border-b border-white/10 px-6 py-4">
+        <div className="flex flex-col gap-3 border-b border-slate-900/10 px-6 py-4 dark:border-white/10">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-xs font-medium tracking-[0.16em] text-brand-light">
+              <p className="text-xs font-medium tracking-[0.16em] text-brand dark:text-brand-light">
                 OER RESOURCE FINDER
               </p>
-              <h1 className="mt-1 text-2xl font-semibold text-white md:text-3xl">
+              <h1 className="mt-1 text-2xl font-semibold text-slate-900 dark:text-white md:text-3xl">
                 Find open educational resources
               </h1>
             </div>
@@ -150,10 +150,10 @@ export default function ChatPage() {
                 id={courseId}
                 value={course}
                 onChange={(e) => setCourse(e.target.value)}
-                className="h-9 rounded-lg border border-white/15 bg-white/5 px-3 text-sm text-white outline-none transition focus-visible:border-brand-light focus-visible:ring-2 focus-visible:ring-brand-light/40"
+                className="h-9 rounded-lg border border-slate-900/15 bg-white/80 px-3 text-sm text-slate-800 outline-none transition focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/30 dark:border-white/15 dark:bg-white/5 dark:text-white dark:focus-visible:border-brand-light dark:focus-visible:ring-brand-light/40"
               >
                 {COURSES.map((c) => (
-                  <option key={c.value} value={c.value} className="bg-surface">
+                  <option key={c.value} value={c.value} className="bg-surface text-[color:var(--text-primary-color)]">
                     {c.label}
                   </option>
                 ))}
@@ -171,10 +171,10 @@ export default function ChatPage() {
                 id={sourceId}
                 value={sourceFilter}
                 onChange={(e) => setSourceFilter(e.target.value)}
-                className="h-9 rounded-lg border border-white/15 bg-white/5 px-3 text-sm text-white outline-none transition focus-visible:border-brand-light focus-visible:ring-2 focus-visible:ring-brand-light/40"
+                className="h-9 rounded-lg border border-slate-900/15 bg-white/80 px-3 text-sm text-slate-800 outline-none transition focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/30 dark:border-white/15 dark:bg-white/5 dark:text-white dark:focus-visible:border-brand-light dark:focus-visible:ring-brand-light/40"
               >
                 {SOURCES.map((s) => (
-                  <option key={s.value} value={s.value} className="bg-surface">
+                  <option key={s.value} value={s.value} className="bg-surface text-[color:var(--text-primary-color)]">
                     {s.label}
                   </option>
                 ))}
@@ -243,10 +243,10 @@ export default function ChatPage() {
                 <p
                   className={`max-w-[82%] rounded-3xl px-4 py-3 text-sm leading-relaxed md:max-w-[70%] ${
                     isError
-                      ? "border border-red-500/30 bg-red-500/10 text-red-300"
+                      ? "border border-red-500/35 bg-red-500/14 text-red-700 dark:text-red-300"
                       : isUser
                         ? "bg-gradient-to-r from-brand to-indigo-500 text-white"
-                        : "border border-white/10 bg-white/[0.05] text-slate-100"
+                        : "border border-slate-900/12 bg-white/70 text-slate-800 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-100"
                   }`}
                 >
                   {message.content}
@@ -257,7 +257,7 @@ export default function ChatPage() {
 
           {isThinking && (
             <div className="flex justify-start">
-              <div className="inline-flex items-center gap-2 rounded-3xl border border-white/10 bg-white/[0.05] px-4 py-3">
+              <div className="inline-flex items-center gap-2 rounded-3xl border border-slate-900/12 bg-white/70 px-4 py-3 dark:border-white/10 dark:bg-white/[0.05]">
                 <span className="typing-dot h-2 w-2 rounded-full bg-brand-light" />
                 <span className="typing-dot h-2 w-2 rounded-full bg-brand-light [animation-delay:200ms]" />
                 <span className="typing-dot h-2 w-2 rounded-full bg-brand-light [animation-delay:400ms]" />
@@ -269,7 +269,7 @@ export default function ChatPage() {
         </motion.div>
 
         {/* Input */}
-        <div className="border-t border-white/10 p-4 md:p-5">
+        <div className="border-t border-slate-900/10 p-4 dark:border-white/10 md:p-5">
           <form
             className="flex items-center gap-3"
             onSubmit={(event) => {
@@ -286,7 +286,7 @@ export default function ChatPage() {
               value={inputValue}
               onChange={(event) => setInputValue(event.target.value)}
               placeholder="Ask about a subject, course, or learning goal..."
-              className="h-12 flex-1 rounded-full border border-white/20 bg-white/5 px-5 text-sm text-white outline-none transition focus-visible:border-brand-light focus-visible:ring-2 focus-visible:ring-brand-light/40"
+              className="h-12 flex-1 rounded-full border border-slate-900/20 bg-white/85 px-5 text-sm text-slate-900 outline-none transition focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/30 dark:border-white/20 dark:bg-white/5 dark:text-white dark:focus-visible:border-brand-light dark:focus-visible:ring-brand-light/40"
             />
             <button
               type="submit"
