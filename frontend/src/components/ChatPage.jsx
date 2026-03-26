@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useState, useRef, useEffect, useId } from "react";
-import { sendChatMessage } from "../services/api";
+import { searchResources } from "../services/api";
 import StatusIndicator from "./StatusIndicator";
 import ResourceCard from "./ResourceCard";
 import SearchHistory, { addToHistory } from "./SearchHistory";
@@ -9,16 +9,20 @@ const MotionDiv = motion.div;
 
 const COURSES = [
   { value: "", label: "All Courses" },
+  { value: "ARTS 1100", label: "ARTS 1100" },
   { value: "ENGL 1101", label: "ENGL 1101" },
+  { value: "ENGL 1102", label: "ENGL 1102" },
   { value: "HIST 2111", label: "HIST 2111" },
+  { value: "HIST 2112", label: "HIST 2112" },
   { value: "ITEC 1001", label: "ITEC 1001" },
   { value: "BIOL 1101K", label: "BIOL 1101K" },
+  { value: "BIOL 1102", label: "BIOL 1102" },
 ];
 
 const SOURCES = [
   { value: "both", label: "Both" },
-  { value: "ggc_syllabi", label: "GGC Syllabi" },
-  { value: "open_alg", label: "Open ALG" },
+  { value: "GGC Syllabi", label: "GGC Syllabi" },
+  { value: "Open ALG", label: "Open ALG" },
 ];
 
 const initialMessages = [
@@ -29,20 +33,6 @@ const initialMessages = [
       "Hi! I am your OER AI assistant. Select a course and source, then ask me about a topic to get resource recommendations.",
   },
 ];
-
-function tryParseRecommendations(text) {
-  try {
-    const jsonMatch = text.match(/\[[\s\S]*\]/);
-    if (!jsonMatch) return null;
-    const parsed = JSON.parse(jsonMatch[0]);
-    if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].title) {
-      return parsed;
-    }
-  } catch {
-    /* not valid JSON, fall through */
-  }
-  return null;
-}
 
 export default function ChatPage() {
   const [messages, setMessages] = useState(initialMessages);
@@ -77,22 +67,53 @@ export default function ChatPage() {
     setIsThinking(true);
 
     try {
-      const data = await sendChatMessage(value, {
-        course: course || undefined,
-        sourceFilter: sourceFilter === "both" ? undefined : sourceFilter,
+      const data = await searchResources(value, {
+        courseCode: course || undefined,
+        source: sourceFilter === "both" ? undefined : sourceFilter,
+        grounded: true,
       });
 
-      const recommendations = tryParseRecommendations(data.response);
+      const newMessages = [];
 
-      setMessages((prev) => [
-        ...prev,
-        {
+      if (data.summary) {
+        newMessages.push({
+          id: `s-${Date.now()}`,
+          role: "assistant",
+          content: data.summary,
+        });
+      }
+
+      if (data.results?.length > 0) {
+        newMessages.push({
+          id: `r-${Date.now()}`,
+          role: "results",
+          results: data.results,
+        });
+      } else if (!data.summary) {
+        newMessages.push({
           id: `a-${Date.now()}`,
           role: "assistant",
-          content: data.response,
-          recommendations,
-        },
-      ]);
+          content: "No matching resources found. Try broadening your query or changing the filters.",
+        });
+      }
+
+      if (data.warnings?.length > 0) {
+        newMessages.push({
+          id: `w-${Date.now()}`,
+          role: "warning",
+          content: data.warnings.join(" "),
+        });
+      }
+
+      if (data.errors?.length > 0) {
+        newMessages.push({
+          id: `err-${Date.now()}`,
+          role: "error",
+          content: data.errors.join(" "),
+        });
+      }
+
+      setMessages((prev) => [...prev, ...newMessages]);
     } catch (err) {
       setMessages((prev) => [
         ...prev,
@@ -198,13 +219,9 @@ export default function ChatPage() {
           {messages.map((message) => {
             const isUser = message.role === "user";
             const isError = message.role === "error";
+            const isWarning = message.role === "warning";
 
-            if (
-              !isUser &&
-              !isError &&
-              message.recommendations &&
-              message.recommendations.length > 0
-            ) {
+            if (message.role === "results" && message.results?.length > 0) {
               return (
                 <motion.div
                   key={message.id}
@@ -218,9 +235,9 @@ export default function ChatPage() {
                   }}
                   className="flex justify-start"
                 >
-                  <div className="grid w-full max-w-[90%] gap-3 md:max-w-[80%] md:grid-cols-2">
-                    {message.recommendations.map((rec, i) => (
-                      <ResourceCard key={i} resource={rec} />
+                  <div className="grid w-full max-w-[95%] gap-3 md:max-w-[90%] lg:grid-cols-2">
+                    {message.results.map((res, i) => (
+                      <ResourceCard key={res.resource_id || i} resource={res} />
                     ))}
                   </div>
                 </motion.div>
@@ -244,9 +261,11 @@ export default function ChatPage() {
                   className={`max-w-[82%] rounded-3xl px-4 py-3 text-sm leading-relaxed md:max-w-[70%] ${
                     isError
                       ? "border border-red-500/30 bg-red-500/10 text-red-300"
-                      : isUser
-                        ? "bg-gradient-to-r from-brand to-indigo-500 text-white"
-                        : "border border-white/10 bg-white/[0.05] text-slate-100"
+                      : isWarning
+                        ? "border border-yellow-500/30 bg-yellow-500/10 text-yellow-300"
+                        : isUser
+                          ? "bg-gradient-to-r from-brand to-indigo-500 text-white"
+                          : "border border-white/10 bg-white/[0.05] text-slate-100"
                   }`}
                 >
                   {message.content}
@@ -293,7 +312,7 @@ export default function ChatPage() {
               disabled={!inputValue.trim() || isThinking}
               className="h-12 rounded-full bg-gradient-to-r from-brand to-indigo-500 px-6 text-sm font-semibold text-white transition hover:scale-[1.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-light disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Send
+              Search
             </button>
           </form>
         </div>

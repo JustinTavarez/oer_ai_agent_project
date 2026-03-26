@@ -1,4 +1,4 @@
-"""Integration tests for the /search endpoint."""
+"""Integration tests for the /search endpoint (EvaluatedSearchResponse)."""
 
 from unittest.mock import AsyncMock, patch
 
@@ -9,6 +9,12 @@ from app.main import app
 from app.services.embeddings import EmbeddingError
 
 client = TestClient(app)
+
+EXPECTED_TOP_KEYS = {"query", "timestamp", "log_id", "summary", "results", "warnings", "errors"}
+EXPECTED_RESOURCE_KEYS = {
+    "resource_id", "title", "description", "source", "url", "course_code",
+    "relevance", "license", "integration_tips", "rubric_evaluation", "warnings",
+}
 
 
 def _valid_retrieval_hit(**overrides) -> dict:
@@ -37,7 +43,10 @@ def _valid_retrieval_hit(**overrides) -> dict:
 
 class TestSearchValidResults:
     def test_search_valid_results(self):
-        hits = [_valid_retrieval_hit(), _valid_retrieval_hit(id="oer-002_chunk_0")]
+        hits = [
+            _valid_retrieval_hit(),
+            _valid_retrieval_hit(id="oer-002_chunk_0", title="Art History"),
+        ]
 
         with patch(
             "app.routes.search.search",
@@ -48,16 +57,17 @@ class TestSearchValidResults:
 
         assert resp.status_code == 200
         body = resp.json()
+        assert EXPECTED_TOP_KEYS <= set(body.keys())
         assert len(body["results"]) == 2
-        assert body["results"][0]["id"] == "oer-001_chunk_0"
-        assert body["grounded_response"] is None
-        assert isinstance(body["message"], str)
+        assert body["results"][0]["resource_id"] == "oer-001"
+        assert body["results"][0]["license"]["status"] == "open"
+        assert isinstance(body["results"][0]["rubric_evaluation"], dict)
 
 
 class TestSearchPartialFailure:
     def test_search_partial_failure(self):
         good = _valid_retrieval_hit()
-        bad = _valid_retrieval_hit(id="bad", score="not_a_float")
+        bad = _valid_retrieval_hit(id="oer-bad_chunk_0", score=0.2)
 
         with patch(
             "app.routes.search.search",
@@ -69,11 +79,11 @@ class TestSearchPartialFailure:
         assert resp.status_code == 200
         body = resp.json()
         assert len(body["results"]) >= 1
-        assert body["results"][0]["id"] == "oer-001_chunk_0"
+        assert body["results"][0]["resource_id"] == "oer-001"
 
 
 class TestSearchAllMalformed:
-    def test_search_all_malformed(self):
+    def test_search_empty_results(self):
         with patch(
             "app.routes.search.search",
             new_callable=AsyncMock,
@@ -84,7 +94,7 @@ class TestSearchAllMalformed:
         assert resp.status_code == 200
         body = resp.json()
         assert body["results"] == []
-        assert body["message"] != ""
+        assert len(body["warnings"]) > 0
 
 
 class TestSearchEmbeddingError:
@@ -119,7 +129,12 @@ class TestSearchResponseShapeStable:
 
         assert resp.status_code == 200
         body = resp.json()
-        assert "results" in body
-        assert "grounded_response" in body
-        assert "message" in body
+        assert EXPECTED_TOP_KEYS <= set(body.keys())
         assert isinstance(body["results"], list)
+        assert isinstance(body["warnings"], list)
+        assert isinstance(body["errors"], list)
+        assert body["log_id"]
+        assert body["timestamp"]
+
+        for res in body["results"]:
+            assert EXPECTED_RESOURCE_KEYS <= set(res.keys())
