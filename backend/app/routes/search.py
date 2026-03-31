@@ -36,7 +36,7 @@ def _build_fallback_resource(ctx: dict) -> EvaluatedResource:
         license=license_info,
         integration_tips=[],
         rubric_evaluation=build_rubric_evaluation(ctx, {}),
-        warnings=["LLM evaluation was not available for this resource."],
+        warnings=["Showing retrieval-based results."],
     )
 
 
@@ -120,7 +120,7 @@ async def search_resources(request: SearchRequest):
                 warnings=warnings, errors=errors,
             )
 
-        context_pack = build_context_pack(raw_results)
+        context_pack = build_context_pack(raw_results, course_code=request.course_code)
 
         if not request.grounded:
             evaluated = [_build_fallback_resource(ctx) for ctx in context_pack]
@@ -140,13 +140,14 @@ async def search_resources(request: SearchRequest):
         llm_resp = await generate_evaluated_response(
             query=request.query,
             raw_results=raw_results,
+            course_code=request.course_code,
         )
         warnings.extend(llm_resp.get("warnings", []))
 
         if llm_resp.get("fallback_used"):
             evaluated = [_build_fallback_resource(ctx) for ctx in context_pack]
             if llm_resp.get("parse_failures", 0) > 0:
-                errors.append("LLM returned invalid JSON.")
+                errors.append("Could not process full evaluation for these results.")
         else:
             llm_recs = llm_resp.get("recommendations", [])
             ctx_by_id = {c["resource_id"]: c for c in context_pack}
@@ -178,9 +179,13 @@ async def search_resources(request: SearchRequest):
             fallback_used=llm_resp.get("fallback_used", False),
         )
 
+        summary = llm_resp.get("summary", "")
+        if not summary or not summary.strip():
+            summary = "Resources were found for your query. See the results below."
+
         return EvaluatedSearchResponse(
             query=request.query, timestamp=timestamp, log_id=log_id,
-            summary=llm_resp.get("summary", ""),
+            summary=summary,
             results=evaluated, warnings=warnings, errors=errors,
         )
 

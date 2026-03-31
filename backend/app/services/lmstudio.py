@@ -16,49 +16,27 @@ logger = logging.getLogger(__name__)
 _client: Optional[httpx.AsyncClient] = None
 
 MIN_SCORE_THRESHOLD = 0.4
-MAX_CONTEXT_RESOURCES = 5
+MAX_CONTEXT_RESOURCES = 2
+COURSE_BOOST = 0.10
+
+_response_cache: Dict[tuple, tuple] = {}
+CACHE_TTL_S = 600
+CACHE_MAX = 64
 
 EVALUATED_SYSTEM_PROMPT = """\
-You are the OER AI Agent. You receive a user query and a curated set of Open Educational Resources with metadata. Analyze ONLY the provided resources. Do NOT invent resources, licenses, or URLs.
+Respond with a single JSON object. No markdown, no code fences, no text outside the JSON.
 
-You MUST return a single valid JSON object. The "summary" field is REQUIRED and must not be empty.
+{"summary":"2-3 short sentences on best resources found (never empty)",
+ "recommendations":[{"resource_id":"from input","title":"from input",
+   "description":"1 sentence",
+   "relevance":{"score":0.0-1.0,"reasoning":"brief"},
+   "license":{"status":"open|unclear|not_open|unknown","details":"short"},
+   "rubric_evaluation":{
+     "relevance_and_comprehensiveness":{"score":1-5,"reasoning":"one sentence"},
+     "interactivity_and_engagement":{"score":1-5,"reasoning":"one sentence"},
+     "pedagogical_soundness":{"score":1-5,"reasoning":"one sentence"}}}]}
 
-{
-  "summary": "REQUIRED. 2-3 sentences summarizing the best resources found for the user's query. Always include this field with a meaningful answer.",
-  "recommendations": [
-    {
-      "resource_id": "the resource_id from the input",
-      "title": "exact title from the input",
-      "description": "1-2 sentence description of the resource content and purpose",
-      "relevance": {
-        "score": 0.0 to 1.0,
-        "reasoning": "why this resource matches the query"
-      },
-      "license": {
-        "status": "open" or "unclear" or "not_open" or "unknown",
-        "details": "license name and what it permits"
-      },
-      "integration_tips": ["1-2 practical ideas for how an instructor could use this resource"],
-      "rubric_evaluation": {
-        "relevance_and_comprehensiveness": {"score": 1-5, "reasoning": "..."},
-        "interactivity_and_engagement": {"score": 1-5, "reasoning": "..."},
-        "pedagogical_soundness": {"score": 1-5, "reasoning": "..."}
-      },
-      "warnings": ["any caveats, or empty array"]
-    }
-  ]
-}
-
-Rules:
-- The "summary" field is REQUIRED. Always write 2-3 sentences about what was found.
-- Only use "open" for license status if the license is a recognized Creative Commons or public domain license.
-- Use "unclear" if the license text is ambiguous or non-standard.
-- Use "unknown" if no license information is provided.
-- Do not invent licenses. If the license field says "CC BY 4.0", report it as open. Do not guess beyond what is given.
-- Do not fabricate certainty. If evidence is limited, say so in the reasoning.
-- Mark uncertain evaluations explicitly in the reasoning text.
-- Scores are 1-5 integers. 1=poor, 3=adequate, 5=excellent.
-- Return ONLY the JSON object. No markdown fences, no extra text before or after."""
+Analyze ONLY provided resources. Do not invent data. "open" only for CC/public domain. Scores 1-5 integers. Output raw JSON only."""
 
 
 def _get_client() -> httpx.AsyncClient:
@@ -75,20 +53,51 @@ async def close_client() -> None:
         _client = None
 
 
+def _make_cache_key(query: str, resource_ids: List[str]) -> tuple:
+    return (query.strip().lower(), tuple(sorted(resource_ids)))
+
+
+def _cache_get(key: tuple) -> Optional[Dict[str, Any]]:
+    entry = _response_cache.get(key)
+    if entry is None:
+        return None
+    result, expiry = entry
+    if time.monotonic() > expiry:
+        _response_cache.pop(key, None)
+        return None
+    return result
+
+
+def _cache_put(key: tuple, result: Dict[str, Any]) -> None:
+    if len(_response_cache) >= CACHE_MAX:
+        now = time.monotonic()
+        expired = [k for k, (_, exp) in _response_cache.items() if now > exp]
+        for k in expired:
+            _response_cache.pop(k, None)
+        if len(_response_cache) >= CACHE_MAX:
+            _response_cache.pop(next(iter(_response_cache)), None)
+    _response_cache[key] = (result, time.monotonic() + CACHE_TTL_S)
+
+
 def _extract_resource_id(chunk_id: str) -> str:
     """Extract parent resource ID from a chunk ID like 'oer-001_chunk_0'."""
     parts = chunk_id.split("_chunk_")
     return parts[0] if len(parts) >= 2 else chunk_id
 
 
-def build_context_pack(raw_results: List[Dict]) -> List[Dict]:
+def build_context_pack(
+    raw_results: List[Dict],
+    course_code: Optional[str] = None,
+) -> List[Dict]:
     """Deduplicate, filter, and clean raw retrieval hits into a context pack.
 
     1. Group chunks by resource ID (split on '_chunk_').
     2. Per resource: keep best-scoring chunk, merge metadata.
     3. Filter resources whose best score is below MIN_SCORE_THRESHOLD.
-    4. Sort by best score descending, take top MAX_CONTEXT_RESOURCES.
-    5. Return clean dicts with verified metadata fields.
+    4. Boost same-course resources when course_code is provided.
+    5. Suppress cross-course neighbors when enough same-course results exist.
+    6. Sort by best score descending, take top MAX_CONTEXT_RESOURCES.
+    7. Return clean dicts with verified metadata fields.
     """
     groups: Dict[str, List[Dict]] = defaultdict(list)
     for hit in raw_results:
@@ -115,9 +124,23 @@ def build_context_pack(raw_results: List[Dict]) -> List[Dict]:
             "subject": meta.get("subject", ""),
             "has_accessibility_info": meta.get("has_accessibility_info", False),
             "has_supplementary_materials": meta.get("has_supplementary_materials", False),
-            "content": best.get("content", ""),
+            "content": best.get("content", "")[:500],
             "score": best_score,
         })
+
+    if course_code:
+        cc_upper = course_code.strip().upper()
+        for r in resources:
+            if r["course_code"].strip().upper() == cc_upper:
+                r["score"] = min(1.0, r["score"] + COURSE_BOOST)
+
+        same = [r for r in resources if r["course_code"].strip().upper() == cc_upper]
+        if len(same) >= 2:
+            min_same = min(r["score"] for r in same)
+            resources = [
+                r for r in resources
+                if r["course_code"].strip().upper() == cc_upper or r["score"] >= min_same
+            ]
 
     resources.sort(key=lambda r: r["score"], reverse=True)
     return resources[:MAX_CONTEXT_RESOURCES]
@@ -142,8 +165,25 @@ def _build_user_message(query: str, context_pack: List[Dict]) -> str:
     return "".join(parts)
 
 
+def _repair_json(text: str) -> Optional[Dict]:
+    """Conservative repair: trailing commas and minimal brace closure only."""
+    fixed = re.sub(r",\s*([}\]])", r"\1", text)
+
+    open_braces = fixed.count("{") - fixed.count("}")
+    open_brackets = fixed.count("[") - fixed.count("]")
+    if 0 < open_braces <= 2 and open_brackets >= 0:
+        fixed += "]" * open_brackets + "}" * open_braces
+    elif open_braces < 0 or open_brackets < 0:
+        return None
+
+    try:
+        return json.loads(fixed)
+    except json.JSONDecodeError:
+        return None
+
+
 def _try_parse_json(raw_text: str) -> Optional[Dict]:
-    """Attempt to parse JSON from LLM output, including markdown-fenced."""
+    """Attempt to parse JSON from LLM output with conservative repair."""
     text = raw_text.strip()
     if text.startswith("```"):
         text = re.sub(r"^```(?:json)?\s*", "", text)
@@ -156,10 +196,14 @@ def _try_parse_json(raw_text: str) -> Optional[Dict]:
 
     match = re.search(r"\{[\s\S]*\}", text)
     if match:
+        extracted = match.group()
         try:
-            return json.loads(match.group())
+            return json.loads(extracted)
         except json.JSONDecodeError:
             pass
+        repaired = _repair_json(extracted)
+        if repaired is not None:
+            return repaired
 
     return None
 
@@ -167,12 +211,13 @@ def _try_parse_json(raw_text: str) -> Optional[Dict]:
 async def generate_evaluated_response(
     query: str,
     raw_results: List[Dict],
+    course_code: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Build context pack, call LLM, validate response. Returns parsed dict
     with keys: summary, recommendations, llm_success, llm_duration_ms,
     parse_failures, fallback_used, warnings.
     """
-    context_pack = build_context_pack(raw_results)
+    context_pack = build_context_pack(raw_results, course_code=course_code)
 
     result: Dict[str, Any] = {
         "summary": "",
@@ -191,6 +236,13 @@ async def generate_evaluated_response(
         result["fallback_used"] = True
         return result
 
+    cache_key = _make_cache_key(query, [r["resource_id"] for r in context_pack])
+    cached = _cache_get(cache_key)
+    if cached is not None:
+        logger.info("Cache hit for query=%r", query)
+        cached["context_pack"] = context_pack
+        return cached
+
     user_content = _build_user_message(query, context_pack)
     messages = [
         {"role": "system", "content": EVALUATED_SYSTEM_PROMPT},
@@ -199,7 +251,7 @@ async def generate_evaluated_response(
     payload = {
         "model": settings.model_name,
         "messages": messages,
-        "temperature": 0.3,
+        "temperature": 0.1,
     }
 
     start = time.monotonic()
@@ -220,8 +272,8 @@ async def generate_evaluated_response(
     parsed = _try_parse_json(raw_text)
     if parsed is None:
         result["parse_failures"] = 1
-        logger.warning("LLM returned unparseable JSON. Raw text: %.500s", raw_text)
-        result["warnings"].append("LLM returned invalid JSON; showing raw retrieval results.")
+        logger.warning("LLM returned unparseable JSON. Raw text:\n%.2000s", raw_text)
+        result["warnings"].append("Results shown are based on search relevance.")
         result["fallback_used"] = True
         return result
 
@@ -235,12 +287,22 @@ async def generate_evaluated_response(
         logger.warning("LLM 'recommendations' was not a list.")
         result["warnings"].append("LLM response had malformed recommendations.")
 
+    if not result["summary"] or not result["summary"].strip():
+        titles = [r["title"] for r in context_pack if r.get("title")]
+        result["summary"] = (
+            f"Here are {len(context_pack)} open educational resource(s) matching your query: "
+            + ", ".join(titles)
+            + "."
+        )
+        result["warnings"].append("Summary was generated from search results.")
+
+    _cache_put(cache_key, result)
     return result
 
 
 async def generate_grounded_response(
-    query: str, chunks: List[Dict]
+    query: str, chunks: List[Dict], course_code: Optional[str] = None,
 ) -> Dict:
     """Backward-compatible alias."""
-    resp = await generate_evaluated_response(query, chunks)
+    resp = await generate_evaluated_response(query, chunks, course_code=course_code)
     return {"summary": resp["summary"], "recommendations": resp["recommendations"]}
