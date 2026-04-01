@@ -6,7 +6,7 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     lm_studio_url: str = "http://localhost:1234/v1/chat/completions"
     lm_studio_base_url: str = "http://localhost:1234/v1"
-    model_name: str = "meta-llama-3.1-8b-instruct"
+    model_name: str = "qwen2.5-7b-instruct"
     embedding_model: str = "text-embedding-nomic-embed-text-v1.5"
     cors_origins: str = "http://localhost:5173"
     database_url: str = ""
