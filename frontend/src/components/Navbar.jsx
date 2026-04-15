@@ -13,6 +13,10 @@ const links = [
 export default function Navbar() {
   const { theme, toggleTheme } = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const handleBrandClick = () => {
+    setMobileOpen(false);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   return (
     <motion.header
@@ -24,6 +28,7 @@ export default function Navbar() {
       <nav className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-5 lg:px-12">
         <Link
           to="/"
+          onClick={handleBrandClick}
           className="font-display text-lg font-semibold tracking-[0.08em] text-slate-900 transition-colors dark:text-white"
         >
           OER AI <span className="text-gradient-gold">AGENT</span>
