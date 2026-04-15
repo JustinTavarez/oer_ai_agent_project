@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useState, useRef, useEffect, useId } from "react";
-import { sendChatMessage } from "../services/api";
+import { searchResources } from "../services/api";
 import StatusIndicator from "./StatusIndicator";
 import ResourceCard from "./ResourceCard";
 import SearchHistory, { addToHistory } from "./SearchHistory";
@@ -9,17 +9,38 @@ const MotionDiv = motion.div;
 
 const COURSES = [
   { value: "", label: "All Courses" },
+  { value: "ARTS 1100", label: "ARTS 1100" },
   { value: "ENGL 1101", label: "ENGL 1101" },
+  { value: "ENGL 1102", label: "ENGL 1102" },
   { value: "HIST 2111", label: "HIST 2111" },
+  { value: "HIST 2112", label: "HIST 2112" },
   { value: "ITEC 1001", label: "ITEC 1001" },
   { value: "BIOL 1101K", label: "BIOL 1101K" },
+  { value: "BIOL 1102", label: "BIOL 1102" },
 ];
 
 const SOURCES = [
   { value: "both", label: "Both" },
-  { value: "ggc_syllabi", label: "GGC Syllabi" },
-  { value: "open_alg", label: "Open ALG" },
+  { value: "GGC Syllabi", label: "GGC Syllabi" },
+  { value: "Open ALG", label: "Open ALG" },
 ];
+
+const INTERNAL_PATTERNS = [
+  /\bLLM\b/i,
+  /\bfallback\b/i,
+  /\bparse\b/i,
+  /\bthreshold\b/i,
+  /\bvector similarity\b/i,
+  /\bretrieval\b/i,
+  /\binternal error\b/i,
+];
+
+function filterUserWarnings(items) {
+  if (!items?.length) return [];
+  return items.filter(
+    (msg) => !INTERNAL_PATTERNS.some((re) => re.test(msg)),
+  );
+}
 
 const initialMessages = [
   {
@@ -30,18 +51,74 @@ const initialMessages = [
   },
 ];
 
-function tryParseRecommendations(text) {
-  try {
-    const jsonMatch = text.match(/\[[\s\S]*\]/);
-    if (!jsonMatch) return null;
-    const parsed = JSON.parse(jsonMatch[0]);
-    if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].title) {
-      return parsed;
-    }
-  } catch {
-    /* not valid JSON, fall through */
-  }
-  return null;
+function SkeletonCard() {
+  return (
+    <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-4">
+      <div className="h-5 w-3/4 animate-pulse rounded bg-white/10" />
+      <div className="h-3 w-full animate-pulse rounded bg-white/8" />
+      <div className="h-3 w-5/6 animate-pulse rounded bg-white/8" />
+      <div className="mt-1 flex gap-2">
+        <div className="h-5 w-16 animate-pulse rounded-full bg-white/8" />
+        <div className="h-5 w-20 animate-pulse rounded-full bg-white/8" />
+      </div>
+      <div className="mt-1 h-2 w-full animate-pulse rounded bg-white/6" />
+    </div>
+  );
+}
+
+function EmptyState() {
+  return (
+    <div className="flex flex-col items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.03] px-6 py-10 text-center">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-10 w-10 text-slate-500"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={1.5}
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"
+        />
+      </svg>
+      <p className="text-sm text-slate-400">
+        No matching resources found. Try a broader query or different filters.
+      </p>
+    </div>
+  );
+}
+
+function ErrorState({ message, onRetry }) {
+  return (
+    <div className="flex flex-col items-center gap-3 rounded-2xl border border-red-500/20 bg-red-500/5 px-6 py-8 text-center">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        className="h-9 w-9 text-red-400"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={1.5}
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"
+        />
+      </svg>
+      <p className="text-sm text-red-300">{message}</p>
+      {onRetry && (
+        <button
+          type="button"
+          onClick={onRetry}
+          className="mt-1 rounded-full border border-red-500/30 bg-red-500/10 px-4 py-1.5 text-xs font-medium text-red-300 transition hover:bg-red-500/20"
+        >
+          Try again
+        </button>
+      )}
+    </div>
+  );
 }
 
 export default function ChatPage() {
@@ -50,6 +127,7 @@ export default function ChatPage() {
   const [isThinking, setIsThinking] = useState(false);
   const [course, setCourse] = useState("");
   const [sourceFilter, setSourceFilter] = useState("both");
+  const [lastQuery, setLastQuery] = useState(null);
   const messagesEndRef = useRef(null);
 
   const courseId = useId();
@@ -65,6 +143,7 @@ export default function ChatPage() {
     if (!value || isThinking) return;
 
     addToHistory(value);
+    setLastQuery(value);
 
     const userMessage = {
       id: `u-${Date.now()}`,
@@ -77,34 +156,70 @@ export default function ChatPage() {
     setIsThinking(true);
 
     try {
-      const data = await sendChatMessage(value, {
-        course: course || undefined,
-        sourceFilter: sourceFilter === "both" ? undefined : sourceFilter,
+      const data = await searchResources(value, {
+        courseCode: course || undefined,
+        source: sourceFilter === "both" ? undefined : sourceFilter,
+        grounded: true,
       });
 
-      const recommendations = tryParseRecommendations(data.response);
+      const newMessages = [];
 
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: `a-${Date.now()}`,
+      if (data.summary) {
+        newMessages.push({
+          id: `s-${Date.now()}`,
           role: "assistant",
-          content: data.response,
-          recommendations,
-        },
-      ]);
+          content: data.summary,
+        });
+      }
+
+      if (data.results?.length > 0) {
+        newMessages.push({
+          id: `r-${Date.now()}`,
+          role: "results",
+          results: data.results,
+        });
+      } else {
+        newMessages.push({
+          id: `empty-${Date.now()}`,
+          role: "empty",
+        });
+      }
+
+      const userWarnings = filterUserWarnings(data.warnings);
+      if (userWarnings.length > 0) {
+        newMessages.push({
+          id: `w-${Date.now()}`,
+          role: "warning",
+          content: userWarnings.join(" "),
+        });
+      }
+
+      const userErrors = filterUserWarnings(data.errors);
+      if (userErrors.length > 0) {
+        newMessages.push({
+          id: `err-${Date.now()}`,
+          role: "error",
+          content: userErrors.join(" "),
+        });
+      }
+
+      setMessages((prev) => [...prev, ...newMessages]);
     } catch (err) {
       setMessages((prev) => [
         ...prev,
         {
           id: `e-${Date.now()}`,
-          role: "error",
+          role: "fetch-error",
           content: err.message || "Something went wrong. Please try again.",
         },
       ]);
     } finally {
       setIsThinking(false);
     }
+  };
+
+  const handleRetry = () => {
+    if (lastQuery) handleSend(lastQuery);
   };
 
   const handleHistorySelect = (query) => {
@@ -198,13 +313,9 @@ export default function ChatPage() {
           {messages.map((message) => {
             const isUser = message.role === "user";
             const isError = message.role === "error";
+            const isWarning = message.role === "warning";
 
-            if (
-              !isUser &&
-              !isError &&
-              message.recommendations &&
-              message.recommendations.length > 0
-            ) {
+            if (message.role === "results" && message.results?.length > 0) {
               return (
                 <motion.div
                   key={message.id}
@@ -218,10 +329,52 @@ export default function ChatPage() {
                   }}
                   className="flex justify-start"
                 >
-                  <div className="grid w-full max-w-[90%] gap-3 md:max-w-[80%] md:grid-cols-2">
-                    {message.recommendations.map((rec, i) => (
-                      <ResourceCard key={i} resource={rec} />
+                  <div className="grid w-full max-w-[95%] gap-3 md:max-w-[90%] lg:grid-cols-2">
+                    {message.results.map((res, i) => (
+                      <ResourceCard key={res.resource_id || i} resource={res} />
                     ))}
+                  </div>
+                </motion.div>
+              );
+            }
+
+            if (message.role === "empty") {
+              return (
+                <motion.div
+                  key={message.id}
+                  variants={{
+                    hidden: { opacity: 0, y: 10 },
+                    visible: {
+                      opacity: 1,
+                      y: 0,
+                      transition: { duration: 0.35 },
+                    },
+                  }}
+                  className="flex justify-start"
+                >
+                  <div className="w-full max-w-[95%] md:max-w-[90%]">
+                    <EmptyState />
+                  </div>
+                </motion.div>
+              );
+            }
+
+            if (message.role === "fetch-error") {
+              return (
+                <motion.div
+                  key={message.id}
+                  variants={{
+                    hidden: { opacity: 0, y: 10 },
+                    visible: {
+                      opacity: 1,
+                      y: 0,
+                      transition: { duration: 0.35 },
+                    },
+                  }}
+                  className="flex justify-start"
+                >
+                  <div className="w-full max-w-[95%] md:max-w-[90%]">
+                    <ErrorState message={message.content} onRetry={handleRetry} />
                   </div>
                 </motion.div>
               );
@@ -243,10 +396,12 @@ export default function ChatPage() {
                 <p
                   className={`max-w-[82%] rounded-3xl px-4 py-3 text-sm leading-relaxed md:max-w-[70%] ${
                     isError
-                      ? "border border-red-500/35 bg-red-500/14 text-red-700 dark:text-red-300"
-                      : isUser
-                        ? "bg-gradient-to-r from-brand to-indigo-500 text-white"
-                        : "border border-slate-900/12 bg-white/70 text-slate-800 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-100"
+                      ? "border border-red-500/30 bg-red-500/10 text-red-300"
+                      : isWarning
+                        ? "border border-yellow-500/30 bg-yellow-500/10 text-yellow-300"
+                        : isUser
+                          ? "bg-gradient-to-r from-brand to-indigo-500 text-white"
+                          : "border border-white/10 bg-white/[0.05] text-slate-100"
                   }`}
                 >
                   {message.content}
@@ -257,10 +412,9 @@ export default function ChatPage() {
 
           {isThinking && (
             <div className="flex justify-start">
-              <div className="inline-flex items-center gap-2 rounded-3xl border border-slate-900/12 bg-white/70 px-4 py-3 dark:border-white/10 dark:bg-white/[0.05]">
-                <span className="typing-dot h-2 w-2 rounded-full bg-brand-light" />
-                <span className="typing-dot h-2 w-2 rounded-full bg-brand-light [animation-delay:200ms]" />
-                <span className="typing-dot h-2 w-2 rounded-full bg-brand-light [animation-delay:400ms]" />
+              <div className="grid w-full max-w-[95%] gap-3 md:max-w-[90%] lg:grid-cols-2">
+                <SkeletonCard />
+                <SkeletonCard />
               </div>
             </div>
           )}
@@ -293,7 +447,7 @@ export default function ChatPage() {
               disabled={!inputValue.trim() || isThinking}
               className="h-12 rounded-full bg-gradient-to-r from-brand to-indigo-500 px-6 text-sm font-semibold text-white transition hover:scale-[1.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-light disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Send
+              Search
             </button>
           </form>
         </div>

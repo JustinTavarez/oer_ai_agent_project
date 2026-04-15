@@ -1,10 +1,18 @@
+import asyncio
+import logging
 from typing import Optional
 
 import httpx
 
 from app.config import settings
 
+logger = logging.getLogger(__name__)
+
 _client: Optional[httpx.AsyncClient] = None
+
+CHAT_TIMEOUT_S = 20.0
+CHAT_MAX_RETRIES = 1
+CHAT_RETRY_BACKOFF_S = 1.0
 
 SYSTEM_PROMPT = """You are the OER AI Agent, an expert assistant that helps students and instructors discover high-quality Open Educational Resources (OER).
 
@@ -25,7 +33,7 @@ If the user provides a source preference (GGC Syllabi or Open ALG), prioritize r
 def get_client() -> httpx.AsyncClient:
     global _client
     if _client is None or _client.is_closed:
-        _client = httpx.AsyncClient(timeout=60.0)
+        _client = httpx.AsyncClient(timeout=CHAT_TIMEOUT_S)
     return _client
 
 
@@ -59,10 +67,28 @@ async def get_completion(
     }
 
     client = get_client()
-    resp = await client.post(settings.lm_studio_url, json=payload)
-    resp.raise_for_status()
-    result = resp.json()
-    return {"response": result["choices"][0]["message"]["content"]}
+    last_exc: Optional[Exception] = None
+    for attempt in range(1 + CHAT_MAX_RETRIES):
+        try:
+            resp = await client.post(settings.lm_studio_url, json=payload)
+            resp.raise_for_status()
+            result = resp.json()
+            return {"response": result["choices"][0]["message"]["content"]}
+        except (httpx.TimeoutException, httpx.HTTPStatusError) as exc:
+            last_exc = exc
+            if isinstance(exc, httpx.HTTPStatusError) and exc.response.status_code < 500:
+                break
+            if attempt < CHAT_MAX_RETRIES:
+                logger.warning("Chat LLM attempt %d failed (%s), retrying...", attempt + 1, exc)
+                await asyncio.sleep(CHAT_RETRY_BACKOFF_S)
+        except Exception as exc:
+            last_exc = exc
+            if attempt < CHAT_MAX_RETRIES:
+                logger.warning("Chat LLM attempt %d failed (%s), retrying...", attempt + 1, exc)
+                await asyncio.sleep(CHAT_RETRY_BACKOFF_S)
+
+    logger.error("Chat LLM failed after %d attempt(s): %s", 1 + CHAT_MAX_RETRIES, last_exc)
+    return {"response": "The AI model is currently slow to respond. Please try again in a moment."}
 
 
 async def check_lm_studio() -> bool:

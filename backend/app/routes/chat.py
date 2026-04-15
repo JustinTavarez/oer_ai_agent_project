@@ -1,7 +1,11 @@
-from fastapi import APIRouter, HTTPException
+import logging
+
+from fastapi import APIRouter
 
 from app.models.schemas import ChatRequest, ChatResponse
 from app.services.llm import get_completion
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -15,5 +19,8 @@ async def chat(request: ChatRequest):
             source_filter=request.source_filter,
         )
         return ChatResponse(response=result["response"])
-    except Exception as e:
-        raise HTTPException(status_code=502, detail=f"LLM request failed: {e}")
+    except Exception as exc:
+        logger.exception("Unexpected error in chat route")
+        return ChatResponse(
+            response="Something went wrong while processing your request. Please try again."
+        )
