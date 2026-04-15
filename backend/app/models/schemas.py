@@ -31,6 +31,7 @@ class SearchRequest(BaseModel):
     source: Optional[str] = None
     top_k: int = Field(default=5, ge=1, le=20)
     grounded: bool = False
+    debug: bool = False
 
 
 # ---------------------------------------------------------------------------
@@ -132,6 +133,17 @@ class EvaluatedResource(BaseModel):
     warnings: list[str] = Field(default_factory=list)
 
 
+class DebugInfo(BaseModel):
+    llm_used: bool = False
+    fallback_used: bool = False
+    evaluation_mode: str = "rule_based"
+    retrieval_duration_ms: int = 0
+    llm_duration_ms: int = 0
+    total_duration_ms: int = 0
+    cache_hit: bool = False
+    cache_version: str = ""
+
+
 class EvaluatedSearchResponse(BaseModel):
     query: str
     timestamp: str
@@ -140,3 +152,6 @@ class EvaluatedSearchResponse(BaseModel):
     results: list[EvaluatedResource] = Field(default_factory=list)
     warnings: list[str] = Field(default_factory=list)
     errors: list[str] = Field(default_factory=list)
+    debug: Optional[DebugInfo] = Field(default=None, alias="_debug")
+
+    model_config = {"populate_by_name": True}

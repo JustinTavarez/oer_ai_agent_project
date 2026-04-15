@@ -1,5 +1,6 @@
 """LM Studio chat-completion client for evaluated OER responses."""
 
+import asyncio
 import json
 import logging
 import re
@@ -14,6 +15,10 @@ from app.config import settings
 logger = logging.getLogger(__name__)
 
 _client: Optional[httpx.AsyncClient] = None
+
+LLM_TIMEOUT_S = 15.0
+LLM_MAX_RETRIES = 1
+LLM_RETRY_BACKOFF_S = 1.0
 
 MIN_SCORE_THRESHOLD = 0.4
 MAX_CONTEXT_RESOURCES = 2
@@ -42,7 +47,7 @@ Analyze ONLY provided resources. Do not invent data. "open" only for CC/public d
 def _get_client() -> httpx.AsyncClient:
     global _client
     if _client is None or _client.is_closed:
-        _client = httpx.AsyncClient(timeout=90.0)
+        _client = httpx.AsyncClient(timeout=LLM_TIMEOUT_S)
     return _client
 
 
@@ -54,7 +59,7 @@ async def close_client() -> None:
 
 
 def _make_cache_key(query: str, resource_ids: List[str]) -> tuple:
-    return (query.strip().lower(), tuple(sorted(resource_ids)))
+    return (query.strip().lower(), tuple(sorted(resource_ids)), settings.cache_version)
 
 
 def _cache_get(key: tuple) -> Optional[Dict[str, Any]]:
@@ -232,7 +237,6 @@ async def generate_evaluated_response(
 
     if not context_pack:
         result["summary"] = "No resources met the relevance threshold for this query."
-        result["warnings"].append("All retrieval results scored below the minimum threshold.")
         result["fallback_used"] = True
         return result
 
@@ -255,17 +259,33 @@ async def generate_evaluated_response(
     }
 
     start = time.monotonic()
-    try:
-        client = _get_client()
-        resp = await client.post(settings.lm_studio_url, json=payload)
-        resp.raise_for_status()
-        llm_result = resp.json()
-        raw_text = llm_result["choices"][0]["message"]["content"]
-        result["llm_duration_ms"] = int((time.monotonic() - start) * 1000)
-    except Exception as exc:
-        result["llm_duration_ms"] = int((time.monotonic() - start) * 1000)
-        logger.error("LM Studio request failed: %s", exc)
-        result["warnings"].append(f"LLM evaluation unavailable: {exc}")
+    raw_text = None
+    last_exc: Optional[Exception] = None
+    client = _get_client()
+    for attempt in range(1 + LLM_MAX_RETRIES):
+        try:
+            resp = await client.post(settings.lm_studio_url, json=payload)
+            resp.raise_for_status()
+            llm_result = resp.json()
+            raw_text = llm_result["choices"][0]["message"]["content"]
+            break
+        except (httpx.TimeoutException, httpx.HTTPStatusError) as exc:
+            last_exc = exc
+            if isinstance(exc, httpx.HTTPStatusError) and exc.response.status_code < 500:
+                break
+            if attempt < LLM_MAX_RETRIES:
+                logger.warning("LLM attempt %d failed (%s), retrying...", attempt + 1, exc)
+                await asyncio.sleep(LLM_RETRY_BACKOFF_S)
+        except Exception as exc:
+            last_exc = exc
+            if attempt < LLM_MAX_RETRIES:
+                logger.warning("LLM attempt %d failed (%s), retrying...", attempt + 1, exc)
+                await asyncio.sleep(LLM_RETRY_BACKOFF_S)
+
+    result["llm_duration_ms"] = int((time.monotonic() - start) * 1000)
+
+    if raw_text is None:
+        logger.error("LM Studio request failed after %d attempt(s): %s", 1 + LLM_MAX_RETRIES, last_exc)
         result["fallback_used"] = True
         return result
 
@@ -273,7 +293,6 @@ async def generate_evaluated_response(
     if parsed is None:
         result["parse_failures"] = 1
         logger.warning("LLM returned unparseable JSON. Raw text:\n%.2000s", raw_text)
-        result["warnings"].append("Results shown are based on search relevance.")
         result["fallback_used"] = True
         return result
 
@@ -285,7 +304,6 @@ async def generate_evaluated_response(
         result["recommendations"] = []
         result["parse_failures"] += 1
         logger.warning("LLM 'recommendations' was not a list.")
-        result["warnings"].append("LLM response had malformed recommendations.")
 
     if not result["summary"] or not result["summary"].strip():
         titles = [r["title"] for r in context_pack if r.get("title")]
@@ -294,7 +312,6 @@ async def generate_evaluated_response(
             + ", ".join(titles)
             + "."
         )
-        result["warnings"].append("Summary was generated from search results.")
 
     _cache_put(cache_key, result)
     return result

@@ -1,7 +1,7 @@
 """Hybrid rule-based + LLM-based rubric evaluation for OER resources."""
 
 import re
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from app.models.schemas import (
     NEUTRAL_SCORE,
@@ -9,6 +9,16 @@ from app.models.schemas import (
     RubricEvaluation,
     RubricScore,
 )
+
+_RANKING_WEIGHTS = {
+    "relevance_and_comprehensiveness": 0.30,
+    "pedagogical_soundness": 0.20,
+    "licensing_clarity": 0.15,
+    "interactivity_and_engagement": 0.15,
+    "accessibility_compliance": 0.10,
+    "modularity_and_adaptability": 0.05,
+    "supplementary_resources": 0.05,
+}
 
 _CC_PATTERNS = re.compile(
     r"(?i)\b(CC\s*BY(?:-(?:SA|NC|ND)){0,3}\s*\d[\d.]*|"
@@ -140,3 +150,47 @@ def build_rubric_evaluation(
             context_resource.get("has_supplementary_materials", False)
         ),
     )
+
+
+def compute_weighted_score(rubric: RubricEvaluation) -> float:
+    """Compute a weighted quality score (0.0 - 1.0) from rubric evaluation."""
+    scores = {
+        "relevance_and_comprehensiveness": rubric.relevance_and_comprehensiveness,
+        "pedagogical_soundness": rubric.pedagogical_soundness,
+        "licensing_clarity": rubric.licensing_clarity,
+        "interactivity_and_engagement": rubric.interactivity_and_engagement,
+        "accessibility_compliance": rubric.accessibility_compliance,
+        "modularity_and_adaptability": rubric.modularity_and_adaptability,
+        "supplementary_resources": rubric.supplementary_resources,
+    }
+    total = 0.0
+    for key, weight in _RANKING_WEIGHTS.items():
+        total += weight * (scores[key].score / 5.0)
+    return round(total, 4)
+
+
+def generate_integration_tips(resource_type: str, course_code: str) -> List[str]:
+    """Generate rule-based integration tips from resource metadata."""
+    rt = resource_type.lower().strip()
+    if rt == "textbook":
+        return ["This textbook can be assigned chapter-by-chapter to match your syllabus."]
+    if rt == "syllabus":
+        return ["Review this syllabus for course structure ideas and reading list references."]
+    if course_code:
+        return [f"Review this resource to assess fit for {course_code} course objectives."]
+    return ["Review this resource to assess fit for your course objectives."]
+
+
+def trim_to_sentence(text: str, max_chars: int = 200) -> str:
+    """Trim text to roughly max_chars, ending at a sentence boundary."""
+    if len(text) <= max_chars:
+        return text
+    truncated = text[:max_chars]
+    for sep in (". ", "! ", "? "):
+        idx = truncated.rfind(sep)
+        if idx > max_chars // 3:
+            return truncated[: idx + 1]
+    space_idx = truncated.rfind(" ")
+    if space_idx > max_chars // 3:
+        return truncated[:space_idx] + "..."
+    return truncated + "..."

@@ -41,8 +41,8 @@ class TestChatSurvivesChromaDown:
         assert resp.json()["response"] == "Recommendations without Chroma."
 
 
-class TestChatErrorReturns502:
-    def test_chat_error_returns_502(self):
+class TestChatErrorReturnsGraceful:
+    def test_chat_error_returns_friendly_message(self):
         with patch(
             "app.routes.chat.get_completion",
             new_callable=AsyncMock,
@@ -50,5 +50,7 @@ class TestChatErrorReturns502:
         ):
             resp = client.post("/chat", json={"prompt": "Find art resources"})
 
-        assert resp.status_code == 502
-        assert "LLM request failed" in resp.json()["detail"]
+        assert resp.status_code == 200
+        body = resp.json()
+        assert "response" in body
+        assert "try again" in body["response"].lower()

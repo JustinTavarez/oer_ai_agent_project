@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from collections import Counter
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -130,7 +131,7 @@ async def search(
     if where_filter:
         kwargs["where"] = where_filter
 
-    results = collection.query(**kwargs)
+    results = await asyncio.to_thread(collection.query, **kwargs)
 
     ids = results.get("ids", [[]])[0]
     documents = results.get("documents", [[]])[0]

@@ -25,6 +25,12 @@ def log_search_request(
     llm_duration_ms: int = 0,
     llm_parse_failures: int = 0,
     fallback_used: bool = False,
+    retrieval_duration_ms: int = 0,
+    total_duration_ms: int = 0,
+    cache_hit: bool = False,
+    evaluation_mode: str = "rule_based",
+    response_status: str = "success",
+    cache_version: str = "",
 ) -> None:
     log_path = Path(settings.search_log_path)
     log_path.parent.mkdir(parents=True, exist_ok=True)
@@ -39,15 +45,19 @@ def log_search_request(
         "result_count": result_count,
         "grounded": grounded,
         "message": message,
+        "retrieved_doc_count": retrieved_doc_count,
+        "final_result_count": final_result_count,
+        "llm_success": llm_success,
+        "llm_duration_ms": llm_duration_ms,
+        "llm_parse_failures": llm_parse_failures,
+        "fallback_used": fallback_used,
+        "retrieval_duration_ms": retrieval_duration_ms,
+        "total_duration_ms": total_duration_ms,
+        "cache_hit": cache_hit,
+        "evaluation_mode": evaluation_mode,
+        "response_status": response_status,
+        "cache_version": cache_version or settings.cache_version,
     }
-
-    if log_id:
-        entry["retrieved_doc_count"] = retrieved_doc_count
-        entry["final_result_count"] = final_result_count
-        entry["llm_success"] = llm_success
-        entry["llm_duration_ms"] = llm_duration_ms
-        entry["llm_parse_failures"] = llm_parse_failures
-        entry["fallback_used"] = fallback_used
 
     if skipped_hits:
         entry["skipped_hits"] = skipped_hits

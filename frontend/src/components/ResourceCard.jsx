@@ -23,22 +23,29 @@ function ScoreBar({ score, max = 5 }) {
           style={{ width: `${pct}%` }}
         />
       </div>
-      <span className="text-xs tabular-nums text-slate-400">{score.toFixed(1)}</span>
+      <span className="text-xs tabular-nums text-slate-400">
+        {score.toFixed(1)}
+      </span>
     </div>
   );
 }
 
 function RubricRow({ label, data }) {
   if (!data) return null;
+  const dimmed = data.basis === "unavailable";
   return (
-    <div className="flex flex-col gap-0.5">
+    <div className={`flex flex-col gap-0.5 ${dimmed ? "opacity-50" : ""}`}>
       <div className="flex items-center justify-between">
         <span className="text-xs text-slate-300">{label}</span>
-        <span className="text-[10px] text-slate-500">{BASIS_LABELS[data.basis] ?? ""}</span>
+        <span className="text-[10px] text-slate-500">
+          {BASIS_LABELS[data.basis] ?? ""}
+        </span>
       </div>
       <ScoreBar score={data.score} />
       {data.reasoning && (
-        <p className="text-[11px] leading-snug text-slate-500">{data.reasoning}</p>
+        <p className="text-[11px] leading-snug text-slate-500">
+          {data.reasoning}
+        </p>
       )}
     </div>
   );
@@ -54,6 +61,24 @@ const RUBRIC_LABELS = {
   supplementary_resources: "Supplementary Resources",
 };
 
+const RUBRIC_KEYS = Object.keys(RUBRIC_LABELS);
+const TOTAL_CRITERIA = RUBRIC_KEYS.length;
+
+function computeQualityScore(rubric) {
+  if (!rubric) return null;
+  let sum = 0;
+  let count = 0;
+  for (const key of RUBRIC_KEYS) {
+    const entry = rubric[key];
+    if (entry && entry.basis !== "unavailable") {
+      sum += entry.score;
+      count += 1;
+    }
+  }
+  if (count === 0) return null;
+  return { avg: sum / count, count };
+}
+
 export default function ResourceCard({ resource }) {
   const [rubricOpen, setRubricOpen] = useState(false);
 
@@ -61,10 +86,25 @@ export default function ResourceCard({ resource }) {
   const licenseStyle = LICENSE_COLORS[license.status] ?? LICENSE_COLORS.unknown;
   const rubric = resource.rubric_evaluation ?? {};
   const relevance = resource.relevance ?? {};
+  const quality = computeQualityScore(rubric);
 
   return (
     <div className="flex flex-col rounded-2xl border border-white/10 bg-white/[0.04] p-4 transition hover:border-white/20">
-      <h3 className="text-base font-semibold text-white">{resource.title}</h3>
+      <div className="flex items-start justify-between gap-2">
+        <h3 className="text-base font-semibold text-white">{resource.title}</h3>
+        {quality && (
+          <div className="flex shrink-0 flex-col items-center rounded-xl border border-brand/30 bg-brand/10 px-2.5 py-1">
+            <span className="text-lg font-bold tabular-nums text-brand-light">
+              {quality.avg.toFixed(1)}
+            </span>
+            <span className="text-[9px] leading-none text-slate-400">
+              {quality.count < TOTAL_CRITERIA
+                ? `${quality.count}/${TOTAL_CRITERIA}`
+                : "/ 5"}
+            </span>
+          </div>
+        )}
+      </div>
 
       {resource.description && (
         <p className="mt-1.5 text-sm leading-relaxed text-slate-300">
@@ -101,7 +141,9 @@ export default function ResourceCard({ resource }) {
           </span>
           <ScoreBar score={relevance.score} max={1} />
           {relevance.reasoning && (
-            <p className="mt-0.5 text-[11px] text-slate-500">{relevance.reasoning}</p>
+            <p className="mt-0.5 text-[11px] text-slate-500">
+              {relevance.reasoning}
+            </p>
           )}
         </div>
       )}
@@ -136,7 +178,11 @@ export default function ResourceCard({ resource }) {
               stroke="currentColor"
               strokeWidth={2}
             >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9 5l7 7-7 7"
+              />
             </svg>
             Quality Evaluation
           </button>
@@ -150,22 +196,13 @@ export default function ResourceCard({ resource }) {
         </div>
       )}
 
-      {/* Warnings */}
-      {resource.warnings?.length > 0 && (
-        <div className="mt-3 rounded-lg border border-yellow-500/20 bg-yellow-500/5 px-3 py-2">
-          {resource.warnings.map((w, i) => (
-            <p key={i} className="text-xs text-yellow-300/80">{w}</p>
-          ))}
-        </div>
-      )}
-
       {/* Link */}
       {resource.url && (
         <a
           href={resource.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-brand-light transition hover:text-white"
+          className="mt-auto pt-3 inline-flex items-center gap-1 text-sm font-medium text-brand-light transition hover:text-white"
         >
           View resource
           <svg
@@ -176,7 +213,11 @@ export default function ResourceCard({ resource }) {
             stroke="currentColor"
             strokeWidth={2}
           >
-            <path strokeLinecap="round" strokeLinejoin="round" d="M14 3h7m0 0v7m0-7L10 14" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M14 3h7m0 0v7m0-7L10 14"
+            />
           </svg>
         </a>
       )}
