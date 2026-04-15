@@ -128,6 +128,7 @@ export default function ChatPage() {
   const [course, setCourse] = useState("");
   const [sourceFilter, setSourceFilter] = useState("both");
   const [lastQuery, setLastQuery] = useState(null);
+  const messagesContainerRef = useRef(null);
   const messagesEndRef = useRef(null);
   const previousMessageCountRef = useRef(initialMessages.length);
   const previousThinkingRef = useRef(false);
@@ -135,6 +136,11 @@ export default function ChatPage() {
   const courseId = useId();
   const sourceId = useId();
   const inputId = useId();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "auto" });
+    messagesContainerRef.current?.scrollTo({ top: 0, behavior: "auto" });
+  }, []);
 
   useEffect(() => {
     const hasNewMessages = messages.length > previousMessageCountRef.current;
@@ -312,6 +318,7 @@ export default function ChatPage() {
 
         {/* Messages */}
         <motion.div
+          ref={messagesContainerRef}
           className="flex-1 space-y-4 overflow-y-auto px-5 py-5 md:px-6"
           initial="hidden"
           animate="visible"
