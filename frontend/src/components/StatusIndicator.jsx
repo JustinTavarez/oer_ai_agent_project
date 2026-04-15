@@ -63,7 +63,7 @@ export default function StatusIndicator() {
 
   return (
     <div
-      className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2 text-xs text-text-muted"
+      className="flex flex-wrap items-center gap-x-4 gap-y-1 rounded-xl border border-slate-900/12 bg-white/70 px-4 py-2 text-xs text-text-muted dark:border-white/10 dark:bg-white/[0.04]"
       role="status"
       aria-live="polite"
     >
