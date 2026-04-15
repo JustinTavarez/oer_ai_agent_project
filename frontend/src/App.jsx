@@ -33,7 +33,6 @@ function ScrollToHash() {
       }
     };
 
-    // Delay one frame so home sections are mounted after route transition.
     window.requestAnimationFrame(scrollToSection);
   }, [hash, pathname]);
 
@@ -42,7 +41,7 @@ function ScrollToHash() {
 
 function App() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-surface transition-colors duration-500">
       <ScrollToHash />
       <Navbar />
       <main>

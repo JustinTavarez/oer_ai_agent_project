@@ -43,7 +43,7 @@ export default function SearchHistory({ onSelect }) {
       <button
         type="button"
         onClick={() => setOpen((p) => !p)}
-        className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-text-muted transition hover:bg-white/5 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-light"
+        className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-text-muted transition hover:bg-slate-900/5 hover:text-slate-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/35 dark:hover:bg-white/5 dark:hover:text-white dark:focus-visible:ring-brand-light"
         aria-expanded={open}
       >
         <svg
@@ -62,14 +62,14 @@ export default function SearchHistory({ onSelect }) {
         </svg>
         {open ? "Hide" : "Recent searches"}
         {!open && entries.length > 0 && (
-          <span className="rounded-full bg-white/10 px-1.5 py-0.5 text-[10px]">
+          <span className="rounded-full bg-slate-900/10 px-1.5 py-0.5 text-[10px] dark:bg-white/10">
             {entries.length}
           </span>
         )}
       </button>
 
       {open && (
-        <div className="mt-2 rounded-xl border border-white/10 bg-white/[0.03] p-3">
+        <div className="mt-2 rounded-xl border border-slate-900/12 bg-white/75 p-3 dark:border-white/10 dark:bg-white/[0.03]">
           {entries.length === 0 ? (
             <p className="text-xs text-text-muted">No recent searches.</p>
           ) : (
@@ -83,7 +83,7 @@ export default function SearchHistory({ onSelect }) {
                       onSelect(entry);
                       setOpen(false);
                     }}
-                    className="max-w-[240px] truncate rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs text-slate-300 transition hover:border-brand-light/40 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-light"
+                    className="max-w-[240px] truncate rounded-full border border-slate-900/12 bg-white/90 px-3 py-1 text-xs text-slate-700 transition hover:border-brand/40 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/35 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-300 dark:hover:border-brand-light/40 dark:hover:text-white dark:focus-visible:ring-brand-light"
                   >
                     {entry}
                   </button>
