@@ -129,13 +129,23 @@ export default function ChatPage() {
   const [sourceFilter, setSourceFilter] = useState("both");
   const [lastQuery, setLastQuery] = useState(null);
   const messagesEndRef = useRef(null);
+  const previousMessageCountRef = useRef(initialMessages.length);
+  const previousThinkingRef = useRef(false);
 
   const courseId = useId();
   const sourceId = useId();
   const inputId = useId();
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const hasNewMessages = messages.length > previousMessageCountRef.current;
+    const startedThinking = !previousThinkingRef.current && isThinking;
+
+    if (hasNewMessages || startedThinking) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+
+    previousMessageCountRef.current = messages.length;
+    previousThinkingRef.current = isThinking;
   }, [messages, isThinking]);
 
   const handleSend = async (overridePrompt) => {
