@@ -401,7 +401,7 @@ export default function ChatPage() {
                         ? "border border-yellow-500/30 bg-yellow-500/10 text-yellow-300"
                         : isUser
                           ? "bg-gradient-to-r from-brand to-indigo-500 text-white"
-                          : "border border-white/10 bg-white/[0.05] text-slate-100"
+                        : "border border-slate-300/50 bg-white/80 text-slate-800 dark:border-white/10 dark:bg-white/[0.05] dark:text-slate-100"
                   }`}
                 >
                   {message.content}
