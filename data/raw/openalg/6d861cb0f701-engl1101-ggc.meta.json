@@ -1,0 +1,21 @@
+{
+  "url": "https://alg.manifoldapp.org/projects/engl1101-ggc",
+  "final_url": "https://alg.manifoldapp.org/projects/engl1101-ggc",
+  "http_status": 200,
+  "content_type": "text/html",
+  "content_length": 477560,
+  "etag": null,
+  "last_modified": null,
+  "sha256": "10d9b5298d2969a9fe9bdebf2b87c0e0d3c88956880783fa9c9d84266f3d811c",
+  "fetched_at": "2026-04-22T21:11:32.260094+00:00",
+  "last_checked": "2026-04-22T21:11:32.260106+00:00",
+  "course_code": "ENGL 1101",
+  "source": "Open ALG",
+  "title": "English Composition Open Textbook",
+  "term": "",
+  "resource_type": "textbook",
+  "notes": "",
+  "mapping_rationale": "GGC-authored open textbook for ENGL 1101.",
+  "subject_area": "English Composition",
+  "slug": "6d861cb0f701-engl1101-ggc"
+}

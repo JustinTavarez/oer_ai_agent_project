@@ -1,0 +1,21 @@
+{
+  "url": "https://alg.manifoldapp.org/projects/introduction-to-biology-ii-labmanual",
+  "final_url": "https://alg.manifoldapp.org/projects/introduction-to-biology-ii-labmanual",
+  "http_status": 200,
+  "content_type": "text/html",
+  "content_length": 468212,
+  "etag": null,
+  "last_modified": null,
+  "sha256": "aa6b32616f47742c1f8a787dd6b5c07db25f11db8832d7ae6486ac2bb4976dfe",
+  "fetched_at": "2026-04-22T21:11:42.216080+00:00",
+  "last_checked": "2026-04-22T21:11:42.216100+00:00",
+  "course_code": "BIOL 1102",
+  "source": "Open ALG",
+  "title": "Introduction to Biology II Lab Manual",
+  "term": "",
+  "resource_type": "textbook",
+  "notes": "",
+  "mapping_rationale": "Biology II lab manual covers organismal/ecological scope of BIOL 1102.",
+  "subject_area": "General Biology",
+  "slug": "3fd7638b2bb7-introduction-to-biology-ii-labmanual"
+}

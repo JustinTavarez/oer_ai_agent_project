@@ -1,0 +1,21 @@
+{
+  "url": "https://alg.manifoldapp.org/projects/american-yawp-american-history-i-ghc",
+  "final_url": "https://alg.manifoldapp.org/projects/american-yawp-american-history-i-ghc",
+  "http_status": 200,
+  "content_type": "text/html",
+  "content_length": 468560,
+  "etag": null,
+  "last_modified": "Wed, 22 Apr 2026 21:11:36 GMT",
+  "sha256": "55072b5c655a7fc6c2e26368858c6afc09442b0fb0631ed39804d1af177e5a30",
+  "fetched_at": "2026-04-22T21:11:36.192552+00:00",
+  "last_checked": "2026-04-22T21:11:36.192571+00:00",
+  "course_code": "HIST 2111",
+  "source": "Open ALG",
+  "title": "Ancillary Materials for The American Yawp: American History I",
+  "term": "",
+  "resource_type": "project",
+  "notes": "",
+  "mapping_rationale": "American Yawp Vol. I covers pre-colonial through Reconstruction \u2014 HIST 2111 scope.",
+  "subject_area": "US History",
+  "slug": "34fa0706eead-american-yawp-american-history-i-ghc"
+}

@@ -1,0 +1,21 @@
+{
+  "url": "https://alg.manifoldapp.org/projects/principles-of-biology-ii-lab-manual-and-exercises",
+  "final_url": "https://alg.manifoldapp.org/projects/principles-of-biology-ii-lab-manual-and-exercises",
+  "http_status": 200,
+  "content_type": "text/html",
+  "content_length": 456716,
+  "etag": null,
+  "last_modified": null,
+  "sha256": "3906f33f79317d6f1d2d9f6a80bd5acf04a61b0ce1048ae353e634fa02b612db",
+  "fetched_at": "2026-04-22T21:11:43.235754+00:00",
+  "last_checked": "2026-04-22T21:11:43.235760+00:00",
+  "course_code": "BIOL 1102",
+  "source": "Open ALG",
+  "title": "Principles of Biology II Lab Manual and Exercises",
+  "term": "",
+  "resource_type": "textbook",
+  "notes": "",
+  "mapping_rationale": "Second-semester biology lab manual covering organisms/ecology \u2014 BIOL 1102 scope.",
+  "subject_area": "General Biology",
+  "slug": "dc9ed00218e2-principles-of-biology-ii-lab-manual-and-exercises"
+}

@@ -6,3 +6,8 @@ python-dotenv
 chromadb
 pytest
 pytest-asyncio
+beautifulsoup4
+lxml
+readability-lxml
+lxml_html_clean
+PyYAML

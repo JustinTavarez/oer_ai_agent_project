@@ -1,0 +1,21 @@
+{
+  "url": "https://alg.manifoldapp.org/projects/american-history-i-gordon",
+  "final_url": "https://alg.manifoldapp.org/projects/american-history-i-gordon",
+  "http_status": 200,
+  "content_type": "text/html",
+  "content_length": 510976,
+  "etag": null,
+  "last_modified": null,
+  "sha256": "bb71a9a9938a2fcddafe453e07b6146e93be39fb43c657703b85fc0ef772b9c5",
+  "fetched_at": "2026-04-22T21:11:37.244574+00:00",
+  "last_checked": "2026-04-22T21:11:37.244594+00:00",
+  "course_code": "HIST 2111",
+  "source": "Open ALG",
+  "title": "American History I",
+  "term": "",
+  "resource_type": "textbook",
+  "notes": "",
+  "mapping_rationale": "Gordon State American History I course; HIST 2111 scope (to 1877).",
+  "subject_area": "US History",
+  "slug": "d6a4634b26ee-american-history-i-gordon"
+}

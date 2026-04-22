@@ -1,0 +1,141 @@
+# GGC Simple Syllabus manifest — paste public Simple Syllabus URLs below.
+#
+# These URLs MUST be hand-curated from the GGC Simple Syllabus public site
+# (typically ggc.simplesyllabus.com). The pipeline will not crawl or guess.
+#
+# For each of the 8 required courses, add one entry per published public
+# syllabus. Prefer Fall 2025 and Spring 2026.
+#
+# Required fields: course_code, source, url, resource_type
+# Optional fields: title, term, notes, mapping_rationale, subject_area
+#
+# Once you paste real URLs, replace `url: TODO` with the real URL. The
+# fetcher will skip TODO rows and the verifier will list them as gaps.
+
+- course_code: ARTS 1100
+  source: GGC Simple Syllabus
+  title: ""
+  url: TODO
+  term: Fall 2025
+  resource_type: syllabus
+  notes: "Paste the public Simple Syllabus URL for ARTS 1100 Fall 2025."
+
+- course_code: ARTS 1100
+  source: GGC Simple Syllabus
+  title: ""
+  url: TODO
+  term: Spring 2026
+  resource_type: syllabus
+  notes: "Paste the public Simple Syllabus URL for ARTS 1100 Spring 2026."
+
+- course_code: ENGL 1101
+  source: GGC Simple Syllabus
+  title: ""
+  url: TODO
+  term: Fall 2025
+  resource_type: syllabus
+  notes: "Paste the public Simple Syllabus URL for ENGL 1101 Fall 2025."
+
+- course_code: ENGL 1101
+  source: GGC Simple Syllabus
+  title: ""
+  url: TODO
+  term: Spring 2026
+  resource_type: syllabus
+  notes: "Paste the public Simple Syllabus URL for ENGL 1101 Spring 2026."
+
+- course_code: ENGL 1102
+  source: GGC Simple Syllabus
+  title: ""
+  url: TODO
+  term: Fall 2025
+  resource_type: syllabus
+  notes: "Paste the public Simple Syllabus URL for ENGL 1102 Fall 2025."
+
+- course_code: ENGL 1102
+  source: GGC Simple Syllabus
+  title: ""
+  url: TODO
+  term: Spring 2026
+  resource_type: syllabus
+  notes: "Paste the public Simple Syllabus URL for ENGL 1102 Spring 2026."
+
+- course_code: HIST 2111
+  source: GGC Simple Syllabus
+  title: ""
+  url: TODO
+  term: Fall 2025
+  resource_type: syllabus
+  notes: "Paste the public Simple Syllabus URL for HIST 2111 Fall 2025."
+
+- course_code: HIST 2111
+  source: GGC Simple Syllabus
+  title: ""
+  url: TODO
+  term: Spring 2026
+  resource_type: syllabus
+  notes: "Paste the public Simple Syllabus URL for HIST 2111 Spring 2026."
+
+- course_code: HIST 2112
+  source: GGC Simple Syllabus
+  title: ""
+  url: TODO
+  term: Fall 2025
+  resource_type: syllabus
+  notes: "Paste the public Simple Syllabus URL for HIST 2112 Fall 2025."
+
+- course_code: HIST 2112
+  source: GGC Simple Syllabus
+  title: ""
+  url: TODO
+  term: Spring 2026
+  resource_type: syllabus
+  notes: "Paste the public Simple Syllabus URL for HIST 2112 Spring 2026."
+
+- course_code: ITEC 1001
+  source: GGC Simple Syllabus
+  title: ""
+  url: TODO
+  term: Fall 2025
+  resource_type: syllabus
+  notes: "Paste the public Simple Syllabus URL for ITEC 1001 Fall 2025."
+
+- course_code: ITEC 1001
+  source: GGC Simple Syllabus
+  title: ""
+  url: TODO
+  term: Spring 2026
+  resource_type: syllabus
+  notes: "Paste the public Simple Syllabus URL for ITEC 1001 Spring 2026."
+
+- course_code: BIOL 1101K
+  source: GGC Simple Syllabus
+  title: ""
+  url: TODO
+  term: Fall 2025
+  resource_type: syllabus
+  notes: "Paste the public Simple Syllabus URL for BIOL 1101K Fall 2025."
+
+- course_code: BIOL 1101K
+  source: GGC Simple Syllabus
+  title: ""
+  url: TODO
+  term: Spring 2026
+  resource_type: syllabus
+  notes: "Paste the public Simple Syllabus URL for BIOL 1101K Spring 2026."
+
+- course_code: BIOL 1102
+  source: GGC Simple Syllabus
+  title: ""
+  url: TODO
+  term: Fall 2025
+  resource_type: syllabus
+  notes: "Paste the public Simple Syllabus URL for BIOL 1102 Fall 2025."
+
+- course_code: BIOL 1102
+  source: GGC Simple Syllabus
+  title: ""
+  url: TODO
+  term: Spring 2026
+  resource_type: syllabus
+  notes: "Paste the public Simple Syllabus URL for BIOL 1102 Spring 2026."

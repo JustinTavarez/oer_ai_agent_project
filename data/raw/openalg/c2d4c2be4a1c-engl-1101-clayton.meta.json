@@ -1,0 +1,21 @@
+{
+  "url": "https://alg.manifoldapp.org/projects/engl-1101-clayton",
+  "final_url": "https://alg.manifoldapp.org/projects/engl-1101-clayton",
+  "http_status": 200,
+  "content_type": "text/html",
+  "content_length": 479181,
+  "etag": null,
+  "last_modified": null,
+  "sha256": "b350f2eab453fe41b8d30afdf2e5443b1b371bfeb82635853470840bb941d892",
+  "fetched_at": "2026-04-22T21:11:33.652961+00:00",
+  "last_checked": "2026-04-22T21:11:33.652968+00:00",
+  "course_code": "ENGL 1101",
+  "source": "Open ALG",
+  "title": "ENGL 1101 - Composition I Textbook",
+  "term": "",
+  "resource_type": "textbook",
+  "notes": "",
+  "mapping_rationale": "Clayton State ENGL 1101 textbook; secondary ENGL 1101 resource.",
+  "subject_area": "English Composition",
+  "slug": "c2d4c2be4a1c-engl-1101-clayton"
+}

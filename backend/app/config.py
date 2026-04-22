@@ -17,6 +17,10 @@ class Settings(BaseSettings):
     chroma_path: str = "./chroma_db"
     search_log_path: str = "./logs/search_log.jsonl"
 
+    chroma_sample_collection: str = "oer_resources"
+    chroma_real_collection: str = "oer_resources_real"
+    chroma_active_collection: str = "oer_resources"
+
     @property
     def cors_origin_list(self) -> List[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]

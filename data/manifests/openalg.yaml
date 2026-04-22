@@ -1,0 +1,124 @@
+# OpenALG manifest — real source URLs for the 8 required courses.
+# Slugs were selected from the live /api/v1/projects catalog on 2026-04-22.
+# Add/edit entries as needed; rerun `python -m scripts.fetch_raw --manifest ../data/manifests/openalg.yaml`
+# after edits. The manifest is additive; unknown keys are ignored with a warning.
+#
+# Required fields: course_code, source, url, resource_type
+# Optional fields: title, term, notes, mapping_rationale, subject_area
+
+- course_code: ARTS 1100
+  source: Open ALG
+  title: "Introduction to Art: Design, Context, and Meaning"
+  url: https://alg.manifoldapp.org/projects/introduction-to-art
+  term: ""
+  resource_type: textbook
+  subject_area: Art Appreciation
+  mapping_rationale: "Direct subject match for ARTS 1100 Art Appreciation."
+
+- course_code: ENGL 1101
+  source: Open ALG
+  title: "English Composition Open Textbook"
+  url: https://alg.manifoldapp.org/projects/engl1101-ggc
+  term: ""
+  resource_type: textbook
+  subject_area: English Composition
+  mapping_rationale: "GGC-authored open textbook for ENGL 1101."
+
+- course_code: ENGL 1101
+  source: Open ALG
+  title: "ENGL 1101 - Composition I Textbook"
+  url: https://alg.manifoldapp.org/projects/engl-1101-clayton
+  term: ""
+  resource_type: textbook
+  subject_area: English Composition
+  mapping_rationale: "Clayton State ENGL 1101 textbook; secondary ENGL 1101 resource."
+
+- course_code: ENGL 1102
+  source: Open ALG
+  title: "English Composition II 50% Hybrid Course"
+  url: https://alg.manifoldapp.org/projects/engl1102-ksu
+  term: ""
+  resource_type: project
+  subject_area: English Composition and Literature
+  mapping_rationale: "KSU ENGL 1102 hybrid course materials; direct ENGL 1102 mapping."
+
+- course_code: ENGL 1102
+  source: Open ALG
+  title: "Compact Anthology of World Literature"
+  url: https://alg.manifoldapp.org/projects/compact-anthology-of-world-literature
+  term: ""
+  resource_type: textbook
+  subject_area: World Literature
+  mapping_rationale: "Literature anthology supports ENGL 1102 literature/composition curriculum."
+
+- course_code: HIST 2111
+  source: Open ALG
+  title: "Ancillary Materials for The American Yawp: American History I"
+  url: https://alg.manifoldapp.org/projects/american-yawp-american-history-i-ghc
+  term: ""
+  resource_type: project
+  subject_area: US History
+  mapping_rationale: "American Yawp Vol. I covers pre-colonial through Reconstruction — HIST 2111 scope."
+
+- course_code: HIST 2111
+  source: Open ALG
+  title: "American History I"
+  url: https://alg.manifoldapp.org/projects/american-history-i-gordon
+  term: ""
+  resource_type: textbook
+  subject_area: US History
+  mapping_rationale: "Gordon State American History I course; HIST 2111 scope (to 1877)."
+
+- course_code: HIST 2112
+  source: Open ALG
+  title: "Ancillary Materials for The American Yawp: American History II"
+  url: https://alg.manifoldapp.org/projects/american-yawp-american-history-ii-ghc
+  term: ""
+  resource_type: project
+  subject_area: US History
+  mapping_rationale: "American Yawp Vol. II covers Reconstruction through present — HIST 2112 scope (since 1877)."
+
+- course_code: ITEC 1001
+  source: Open ALG
+  title: "Introduction to Computing Principles Curated Resources"
+  url: https://alg.manifoldapp.org/projects/introduction-to-computing-principles-curated-resources
+  term: ""
+  resource_type: project
+  subject_area: Introductory Computing
+  mapping_rationale: "Intro to computing principles aligns with ITEC 1001 Intro to Computing."
+
+- course_code: BIOL 1101K
+  source: Open ALG
+  title: "Introduction to Biology Open Course"
+  url: https://alg.manifoldapp.org/projects/introduction-to-biology-ghc
+  term: ""
+  resource_type: project
+  subject_area: General Biology
+  mapping_rationale: "GHC open course for introductory biology; covers BIOL 1101K-equivalent content (cells, molecules)."
+
+- course_code: BIOL 1101K
+  source: Open ALG
+  title: "Principles of Biology I Lab Manual"
+  url: https://alg.manifoldapp.org/projects/biol1107-ccg
+  term: ""
+  resource_type: textbook
+  subject_area: General Biology
+  mapping_rationale: "CCG Principles of Biology I lab manual; BIOL 1101K lab component."
+
+- course_code: BIOL 1102
+  source: Open ALG
+  title: "Introduction to Biology II Lab Manual"
+  url: https://alg.manifoldapp.org/projects/introduction-to-biology-ii-labmanual
+  term: ""
+  resource_type: textbook
+  subject_area: General Biology
+  mapping_rationale: "Biology II lab manual covers organismal/ecological scope of BIOL 1102."
+
+- course_code: BIOL 1102
+  source: Open ALG
+  title: "Principles of Biology II Lab Manual and Exercises"
+  url: https://alg.manifoldapp.org/projects/principles-of-biology-ii-lab-manual-and-exercises
+  term: ""
+  resource_type: textbook
+  subject_area: General Biology
+  mapping_rationale: "Second-semester biology lab manual covering organisms/ecology — BIOL 1102 scope."
