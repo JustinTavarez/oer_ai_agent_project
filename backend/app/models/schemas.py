@@ -126,6 +126,14 @@ class EvaluatedResource(BaseModel):
     source: str = ""
     url: str = ""
     course_code: str = ""
+    # 'extracted' = description is real body text from the resource.
+    # 'metadata_reference' = description is a manifest-derived stub; the
+    # frontend should label these as live syllabus links instead of
+    # treating them as authoritative content.
+    content_kind: str = "extracted"
+    term: str = ""
+    section: str = ""
+    crn: str = ""
     relevance: RelevanceInfo = Field(default_factory=RelevanceInfo)
     license: LicenseInfo = Field(default_factory=LicenseInfo)
     integration_tips: list[str] = Field(default_factory=list)

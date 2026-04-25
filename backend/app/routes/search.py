@@ -1,7 +1,8 @@
 import logging
+import re
 import time
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple
 from uuid import uuid4
 
 from fastapi import APIRouter
@@ -25,6 +26,40 @@ from app.services.rubric import (
     compute_weighted_score,
     generate_integration_tips,
     trim_to_sentence,
+)
+
+# Cap visible cards per response to keep the chat layout readable. Set
+# alongside top_k from the request; whichever is smaller wins.
+_MAX_DISPLAY_CARDS = 5
+
+# Manifest titles for GGC syllabi follow this stable pattern, so we can
+# pull section + CRN out of the title at presentation time without
+# requiring a re-seed:
+#   "ARTS 1100 - Art Appreciation - Section 13 (CRN 81761) - Fall 2025"
+_SECTION_RE = re.compile(r"\bSection\s+([A-Za-z0-9]+)", re.IGNORECASE)
+_CRN_RE = re.compile(r"\bCRN[\s-]*([0-9]{4,6})", re.IGNORECASE)
+
+
+def _extract_section_and_crn(title: str) -> Tuple[str, str]:
+    if not title:
+        return "", ""
+    section = ""
+    crn = ""
+    sec_m = _SECTION_RE.search(title)
+    if sec_m:
+        section = sec_m.group(1)
+    crn_m = _CRN_RE.search(title)
+    if crn_m:
+        crn = crn_m.group(1)
+    return section, crn
+
+
+# Honest, user-facing description for GGC syllabi we cannot extract body
+# text from. Replaces the synthesized stub that lives in Chroma so we
+# never present it to the user as if it were real syllabus content.
+_GGC_REFERENCE_DESCRIPTION = (
+    "Live syllabus reference. Open the link below for the full GGC syllabus "
+    "(course objectives, schedule, grading, policies)."
 )
 
 logger = logging.getLogger(__name__)
@@ -81,8 +116,20 @@ def _search_cache_put(key: tuple, result: EvaluatedSearchResponse) -> None:
 # Resource builders
 # ---------------------------------------------------------------------------
 
+def _is_metadata_reference(ctx: dict) -> bool:
+    return (ctx.get("content_kind") or "extracted").strip() == "metadata_reference"
+
+
 def _ensure_description(ctx: dict, llm_desc: str = "") -> str:
-    """Guarantee a non-empty description."""
+    """Guarantee a non-empty, honest description.
+
+    For GGC metadata_reference rows we always return the disclaimer
+    string regardless of what the LLM (or fallback content trim)
+    produced, because the underlying ``content`` is a synthetic stub,
+    not real syllabus text.
+    """
+    if _is_metadata_reference(ctx):
+        return _GGC_REFERENCE_DESCRIPTION
     if llm_desc and llm_desc.strip():
         return llm_desc.strip()
     content = ctx.get("content", "")
@@ -94,6 +141,17 @@ def _ensure_description(ctx: dict, llm_desc: str = "") -> str:
 def _ensure_tips(tips: list, ctx: dict) -> list[str]:
     """Guarantee at least one integration tip."""
     clean = [str(t) for t in tips if t]
+    if _is_metadata_reference(ctx):
+        course = ctx.get("course_code", "")
+        term = ctx.get("term", "")
+        suffix = f" ({term})" if term else ""
+        return [
+            (
+                f"Open the live GGC syllabus to confirm the {course} learning "
+                f"outcomes, schedule, and grading policy for this section{suffix}."
+            ),
+            "Use this link as the authoritative source rather than the description above.",
+        ]
     if clean:
         return clean
     return generate_integration_tips(
@@ -111,6 +169,7 @@ def _ensure_license_details(info: LicenseInfo) -> LicenseInfo:
 def _build_fallback_resource(ctx: dict) -> EvaluatedResource:
     """Build an EvaluatedResource from a context-pack entry without LLM data."""
     license_info = _ensure_license_details(classify_license(ctx.get("license", "")))
+    section, crn = _extract_section_and_crn(ctx.get("title", ""))
     return EvaluatedResource(
         resource_id=ctx["resource_id"],
         title=ctx.get("title", ""),
@@ -118,14 +177,16 @@ def _build_fallback_resource(ctx: dict) -> EvaluatedResource:
         source=ctx.get("source", ""),
         url=ctx.get("url", ""),
         course_code=ctx.get("course_code", ""),
+        content_kind=(ctx.get("content_kind") or "extracted"),
+        term=ctx.get("term", ""),
+        section=section,
+        crn=crn,
         relevance=RelevanceInfo(
             score=ctx.get("score", 0.0),
             reasoning="Matched based on content similarity to your query.",
         ),
         license=license_info,
-        integration_tips=generate_integration_tips(
-            ctx.get("resource_type", ""), ctx.get("course_code", ""),
-        ),
+        integration_tips=_ensure_tips([], ctx),
         rubric_evaluation=build_rubric_evaluation(ctx, {}),
     )
 
@@ -161,6 +222,8 @@ def _build_evaluated_resource(ctx: dict, llm_rec: dict) -> EvaluatedResource:
     if not isinstance(tips, list):
         tips = [str(tips)] if tips else []
 
+    section, crn = _extract_section_and_crn(ctx.get("title", ""))
+
     return EvaluatedResource(
         resource_id=ctx["resource_id"],
         title=ctx.get("title", ""),
@@ -168,6 +231,10 @@ def _build_evaluated_resource(ctx: dict, llm_rec: dict) -> EvaluatedResource:
         source=ctx.get("source", ""),
         url=ctx.get("url", ""),
         course_code=ctx.get("course_code", ""),
+        content_kind=(ctx.get("content_kind") or "extracted"),
+        term=ctx.get("term", ""),
+        section=section,
+        crn=crn,
         relevance=relevance,
         license=license_info,
         integration_tips=_ensure_tips(tips, ctx),
@@ -295,7 +362,16 @@ async def search_resources(request: SearchRequest):
             )
             return resp
 
-        context_pack = build_context_pack(raw_results, course_code=request.course_code)
+        # Display cap honors the user's top_k (clipped to a sensible UI
+        # bound). The internal LLM context (built inside
+        # generate_evaluated_response) keeps its own much smaller cap so
+        # the prompt stays small.
+        display_cap = min(max(request.top_k, 1), _MAX_DISPLAY_CARDS)
+        context_pack = build_context_pack(
+            raw_results,
+            course_code=request.course_code,
+            max_resources=display_cap,
+        )
 
         # ---- Non-grounded (rule-based only) ----
         if not request.grounded:
