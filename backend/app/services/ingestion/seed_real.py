@@ -54,6 +54,7 @@ async def seed_real(records_path: Path) -> Dict:
                 "dataset": "real",
                 "notes": rec.get("notes", ""),
                 "mapping_rationale": rec.get("mapping_rationale", ""),
+                "content_kind": rec.get("content_kind", "extracted"),
                 "has_accessibility_info": False,
                 "has_supplementary_materials": False,
             })

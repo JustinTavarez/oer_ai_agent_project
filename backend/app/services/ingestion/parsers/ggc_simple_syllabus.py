@@ -17,6 +17,7 @@ to data/normalized/parse_failures.jsonl by the caller.
 
 from __future__ import annotations
 
+import io
 import logging
 import re
 from dataclasses import dataclass, field
@@ -28,6 +29,11 @@ try:
     from readability import Document as _ReadabilityDoc
 except ImportError:
     _ReadabilityDoc = None
+
+try:
+    from pypdf import PdfReader as _PdfReader
+except ImportError:
+    _PdfReader = None
 
 logger = logging.getLogger(__name__)
 
@@ -200,3 +206,131 @@ def _readability_fallback(html: str) -> str:
         return ""
     soup = BeautifulSoup(summary, "lxml")
     return soup.get_text("\n\n", strip=True)
+
+
+# ---------------------------------------------------------------------------
+# PDF parsing — primary path for GGC since the public site is a JS-rendered SPA
+# ---------------------------------------------------------------------------
+
+
+_PDF_HEADING_RE = re.compile(
+    r"^\s*(?P<label>" + "|".join(re.escape(h) for h in SECTION_HEADINGS) + r")\s*:?\s*$",
+    re.IGNORECASE,
+)
+_PDF_INLINE_HEADING_RE = re.compile(
+    r"(?:^|\n)\s*(?P<label>" + "|".join(re.escape(h) for h in SECTION_HEADINGS) + r")\s*:?\s*\n",
+    re.IGNORECASE,
+)
+
+
+def parse_pdf_text(pdf_bytes: bytes) -> ParsedGgcSyllabus:
+    """Extract text from a GGC PDF export and run the same heuristics.
+
+    The public PDF export at ``/api2/doc-pdf/<id>/<tail>.pdf`` is the primary
+    parseable artifact for GGC syllabi (the ``/doc/<id>/`` HTML page is a
+    JS-rendered SPA shell). This walks the PDF page-by-page, joins the text,
+    then reuses the same section-heading vocabulary and term/instructor/
+    license regex set used for HTML.
+    """
+    result = ParsedGgcSyllabus()
+
+    if _PdfReader is None:
+        logger.warning("pypdf not installed; GGC PDF parsing disabled")
+        return result
+    if not pdf_bytes or not pdf_bytes.startswith(b"%PDF-"):
+        logger.warning("PDF body missing %%PDF- magic; skipping")
+        return result
+
+    try:
+        reader = _PdfReader(io.BytesIO(pdf_bytes))
+        page_texts: List[str] = []
+        for page in reader.pages:
+            try:
+                txt = page.extract_text() or ""
+            except Exception as exc:  # noqa: BLE001
+                logger.warning("pypdf page extract_text failed: %s", exc)
+                txt = ""
+            if txt:
+                page_texts.append(txt)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("pypdf failed to read PDF: %s", exc)
+        return result
+
+    full_text = "\n\n".join(page_texts).strip()
+    if not full_text:
+        return result
+
+    result.title = _pdf_extract_title(full_text)
+    m = TERM_RE.search(full_text[:3000])
+    if m:
+        result.term = f"{m.group(1).title()} {m.group(2)}"
+
+    instr = re.search(
+        r"(?:Instructor|Professor)\s*[:\-]\s*([^\n|]{3,80})",
+        full_text,
+        re.IGNORECASE,
+    )
+    if instr:
+        result.instructor = instr.group(1).strip()
+
+    cc = re.search(
+        r"(https?://creativecommons\.org/licenses/[^\s)]+)",
+        full_text,
+        re.IGNORECASE,
+    )
+    if cc:
+        result.license_url = cc.group(1)
+        result.license = "Creative Commons License"
+
+    result.sections = _pdf_extract_sections(full_text)
+    if not result.sections:
+        result.fallback_body = full_text
+    return result
+
+
+def _pdf_extract_title(text: str) -> str:
+    """First non-empty line that looks like a course/section title.
+
+    The PDF header on GGC exports is typically the school/institution name
+    followed by a line like ``BIOL 1101K Section 03 (81478) Biological
+    Sciences I wLab``. We pick the first line containing a 4-letter prefix
+    + 4-digit course number to keep titles consistent with the manifest.
+    """
+    lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
+    course_re = re.compile(r"\b[A-Z]{2,4}\s?\d{4}[A-Z]?\b.*\bSection\b", re.IGNORECASE)
+    for ln in lines[:25]:
+        if course_re.search(ln):
+            return re.sub(r"\s+", " ", ln)[:200]
+    return lines[0][:200] if lines else ""
+
+
+def _pdf_extract_sections(text: str) -> Dict[str, str]:
+    """Carve text into sections by recognised headings (line-anchored)."""
+    lines = text.splitlines()
+    sections: Dict[str, str] = {}
+    current: Optional[str] = None
+    buffer: List[str] = []
+
+    def flush() -> None:
+        nonlocal buffer, current
+        if current is not None and buffer:
+            body = "\n".join(b.rstrip() for b in buffer).strip()
+            if body and current not in sections:
+                sections[current] = body
+        buffer = []
+
+    for raw in lines:
+        line = raw.rstrip()
+        if not line:
+            buffer.append("")
+            continue
+        m = _PDF_HEADING_RE.match(line)
+        if m:
+            flush()
+            current = m.group("label").lower()
+            continue
+        if current is None:
+            continue
+        buffer.append(line)
+    flush()
+    return sections

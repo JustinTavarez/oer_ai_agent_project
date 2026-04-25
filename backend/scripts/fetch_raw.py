@@ -24,6 +24,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from app.services.ingestion.fetcher import (  # noqa: E402
     build_client,
     build_limiter,
+    build_short_client,
     fetch_entry,
 )
 from app.services.ingestion.manifest import load_manifest  # noqa: E402
@@ -57,6 +58,7 @@ def main() -> int:
 
     overall = Counter()
     client = build_client()
+    short_client = build_short_client()
     limiter = build_limiter()
 
     try:
@@ -72,7 +74,14 @@ def main() -> int:
 
             per_manifest = Counter()
             for entry in loaded.entries:
-                outcome = fetch_entry(entry, raw_root, client, limiter, force=args.force)
+                outcome = fetch_entry(
+                    entry,
+                    raw_root,
+                    client,
+                    limiter,
+                    force=args.force,
+                    short_client=short_client,
+                )
                 overall[outcome.status] += 1
                 per_manifest[outcome.status] += 1
                 label = f"[{outcome.status}]"
@@ -90,6 +99,7 @@ def main() -> int:
             print(f"summary: {dict(per_manifest)}")
     finally:
         client.close()
+        short_client.close()
 
     print(f"\noverall: {dict(overall)}")
     return 0

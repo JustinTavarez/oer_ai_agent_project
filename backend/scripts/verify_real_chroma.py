@@ -77,19 +77,38 @@ def main() -> int:
         label = cc or "(empty)"
         print(f"  {label:12s}  chunks={count:4d}  docs={docs:3d}")
 
+    # Per-course content_kind tally restricted to GGC syllabus rows so the
+    # matrix correctly distinguishes 'ref' (metadata-only) from 'yes'
+    # (extracted body text), regardless of Open ALG content_kind values.
+    per_course_ggc_kinds: dict[str, set[str]] = defaultdict(set)
+    for m in metas:
+        cc = m.get("course_code") or ""
+        src = m.get("source") or ""
+        if cc and src == "GGC Simple Syllabus":
+            per_course_ggc_kinds[cc].add(m.get("content_kind") or "extracted")
+
     _section("Coverage matrix (required courses)")
     all_missing = 0
     for course in sorted(REQUIRED_COURSES):
         sources = per_course_sources.get(course, set())
+        ggc_kinds = per_course_ggc_kinds.get(course, set())
         has_syllabus = "GGC Simple Syllabus" in sources
         has_openalg = "Open ALG" in sources
+        syllabus_label = "no "
+        if has_syllabus:
+            syllabus_label = (
+                "ref"
+                if ggc_kinds and "extracted" not in ggc_kinds
+                else "yes"
+            )
         flag = "OK" if (has_syllabus or has_openalg) else "MISSING"
         print(
-            f"  {course:12s}  syllabus={'yes' if has_syllabus else 'no ':3s}   "
-            f"openalg={'yes' if has_openalg else 'no ':3s}   {flag}"
+            f"  {course:12s}  syllabus={syllabus_label}   "
+            f"openalg={'yes' if has_openalg else 'no '}   {flag}"
         )
         if not (has_syllabus or has_openalg):
             all_missing += 1
+    print("\n  (syllabus column: 'yes' = extracted body text, 'ref' = metadata-only GGC reference link, 'no ' = absent)")
 
     _section("Summary")
     print(f"required courses with at least one real resource: "

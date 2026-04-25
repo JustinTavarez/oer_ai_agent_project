@@ -57,6 +57,7 @@ async def _run_query(collection, query: str) -> List[Dict]:
             "title": m.get("title", ""),
             "source": m.get("source", ""),
             "course_code": m.get("course_code", ""),
+            "content_kind": m.get("content_kind", "extracted"),
             "distance": d,
         })
     return hits
@@ -70,7 +71,8 @@ def _print_hits(label: str, hits: List[Dict]) -> None:
     for h in hits:
         dist = h["distance"]
         dist_str = f"{dist:.4f}" if isinstance(dist, (int, float)) else "n/a"
-        print(f"    d={dist_str}  {h['course_code']:10s}  {h['source']:22s}  {h['title']}")
+        kind_tag = " [REF]" if h.get("content_kind") == "metadata_reference" else ""
+        print(f"    d={dist_str}  {h['course_code']:10s}  {h['source']:22s}{kind_tag}  {h['title']}")
 
 
 async def main() -> int:
