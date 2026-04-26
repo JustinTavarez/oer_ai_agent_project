@@ -1,0 +1,225 @@
+# GGC Simple Syllabus manifest.
+#
+# Source: ggc.simplesyllabus.com is a JavaScript-rendered Angular SPA. The
+# public HTML at /doc/<id>/<tail>?mode=view returns ~18KB of skeleton with
+# no embedded data, no <title> beyond "Simple Syllabus", and no SEO content.
+# The derived /api2/doc-pdf/<id>/<tail>.pdf endpoint returns HTTP 500 (i.e.
+# there is no public PDF download path).
+#
+# Consequence: the ingestion pipeline records GGC entries as
+# `content_kind: metadata_reference` rows. The synthesized body text contains
+# the manifest fields (course_code, title, term, section/CRN, URL) and an
+# explicit disclaimer that the syllabus body is JS-rendered and visitable
+# via the URL. This satisfies the requirement to keep both required sources
+# (GGC Simple Syllabus + Open ALG) in the real-data collection without
+# pretending GGC entries contain extracted body text.
+#
+# Discovery scope:
+#   For each (course, term) we ran multiple Google `site:ggc.simplesyllabus.com`
+#   searches (with and without quotes, with the `2025-Fall-` / `2026-Spring-`
+#   slug prefix). 4 of 16 (course, term) combos surfaced indexed pages.
+#   Per GGC's published policy
+#     www.ggc.edu/faculty-and-staff/inside-ggc/publicly-available-course-syllabuses
+#   only Core IMPACTS courses were required to be public for Spring 2026,
+#   and only Core IMPACTS + School-of-Education for Fall 2025; ITEC 1001 is
+#   not Core IMPACTS and is not required to be public until Fall 2026.
+#   Many sections that exist publicly are also simply not yet indexed by
+#   Google because the site is a JS SPA.
+#
+# Required fields: course_code, source, url, resource_type
+# Optional fields: title, term, notes, mapping_rationale, subject_area
+#
+# When url == TODO the fetcher skips the row and the verifier lists it as
+# a gap.
+
+# ---------- ARTS 1100 ----------
+- course_code: ARTS 1100
+  source: GGC Simple Syllabus
+  title: "ARTS 1100 - Art Appreciation - Section 13 (CRN 81761) - Fall 2025"
+  url: https://ggc.simplesyllabus.com/doc/4cn8e7ppo/2025-Fall-ARTS-1100-Section-13-(81761)-?mode=view
+  term: Fall 2025
+  resource_type: syllabus
+  subject_area: Art Appreciation
+  notes: "Section 13 / CRN 81761. Public lecture section. Indexed by Google."
+
+- course_code: ARTS 1100
+  source: GGC Simple Syllabus
+  title: ""
+  url: TODO
+  term: Spring 2026
+  resource_type: syllabus
+  notes: >-
+    No publicly indexed Spring 2026 ARTS 1100 section found.
+    Tried: site:ggc.simplesyllabus.com 2026 Spring ARTS 1100 (multiple variants
+    incl. quoted "2026-Spring-ARTS-1100" slug). GGC policy requires Core IMPACTS
+    public for Spring 2026 (ARTS 1100 is Core IMPACTS), so a public section
+    likely exists in the syllabus library but is not yet in Google's index.
+
+# ---------- ENGL 1101 ----------
+- course_code: ENGL 1101
+  source: GGC Simple Syllabus
+  title: ""
+  url: TODO
+  term: Fall 2025
+  resource_type: syllabus
+  notes: >-
+    No publicly indexed Fall 2025 ENGL 1101 section found.
+    Tried: site:ggc.simplesyllabus.com 2025 Fall ENGL 1101 (and the quoted
+    "2025-Fall-ENGL-1101" slug). The eCore equivalent at
+    ecampus-usg.simplesyllabus.com/doc/p7mkhytjf was found but is the USG eCore
+    syllabus, not a GGC-hosted one, so it does not satisfy the GGC source.
+
+- course_code: ENGL 1101
+  source: GGC Simple Syllabus
+  title: "ENGL 1101 - English Composition I - Section 41 (CRN 20587) - Spring 2026"
+  url: https://ggc.simplesyllabus.com/doc/h476m5k16/2026-Spring-ENGL-1101-Section-41-(20587)-?mode=view
+  term: Spring 2026
+  resource_type: syllabus
+  subject_area: English Composition
+  notes: "Section 41 / CRN 20587. School of Liberal Arts. Indexed by Google."
+
+# ---------- ENGL 1102 ----------
+- course_code: ENGL 1102
+  source: GGC Simple Syllabus
+  title: ""
+  url: TODO
+  term: Fall 2025
+  resource_type: syllabus
+  notes: >-
+    No publicly indexed Fall 2025 ENGL 1102 section found.
+    Tried: site:ggc.simplesyllabus.com 2025 Fall ENGL 1102 plus the quoted
+    "2025-Fall-ENGL-1102" slug. Found a libguides.ggc.edu LibGuide for an
+    instructor's section but no Simple Syllabus /doc/ URL.
+
+- course_code: ENGL 1102
+  source: GGC Simple Syllabus
+  title: ""
+  url: TODO
+  term: Spring 2026
+  resource_type: syllabus
+  notes: >-
+    No publicly indexed Spring 2026 ENGL 1102 section found.
+    Tried: site:ggc.simplesyllabus.com 2026 Spring ENGL 1102 and the quoted
+    slug. ENGL 1102 is Core IMPACTS so a public section likely exists in the
+    library but is not yet in Google's index.
+
+# ---------- HIST 2111 ----------
+- course_code: HIST 2111
+  source: GGC Simple Syllabus
+  title: ""
+  url: TODO
+  term: Fall 2025
+  resource_type: syllabus
+  notes: >-
+    No publicly indexed Fall 2025 HIST 2111 section found at ggc.simplesyllabus.com.
+    Tried: site:ggc.simplesyllabus.com 2025 Fall HIST 2111 + quoted "2025-Fall-HIST-2111".
+    The eCore variant exists at ecampus-usg.simplesyllabus.com (different host) but
+    that is USG eCore, not GGC.
+
+- course_code: HIST 2111
+  source: GGC Simple Syllabus
+  title: ""
+  url: TODO
+  term: Spring 2026
+  resource_type: syllabus
+  notes: >-
+    No publicly indexed Spring 2026 HIST 2111 section found.
+    Tried: site:ggc.simplesyllabus.com 2026 Spring HIST 2111 + quoted slug.
+    HIST 2111 is Core IMPACTS so a public section should exist but is not yet
+    in Google's index.
+
+# ---------- HIST 2112 ----------
+- course_code: HIST 2112
+  source: GGC Simple Syllabus
+  title: ""
+  url: TODO
+  term: Fall 2025
+  resource_type: syllabus
+  notes: >-
+    No publicly indexed Fall 2025 HIST 2112 section found.
+    Tried: site:ggc.simplesyllabus.com 2025 Fall HIST 2112 + quoted slug.
+
+- course_code: HIST 2112
+  source: GGC Simple Syllabus
+  title: ""
+  url: TODO
+  term: Spring 2026
+  resource_type: syllabus
+  notes: >-
+    No publicly indexed Spring 2026 HIST 2112 section found.
+    Tried: site:ggc.simplesyllabus.com 2026 Spring HIST 2112 + quoted slug.
+    HIST 2112 is Core IMPACTS (Citizenship area) so a public section should exist
+    but is not yet in Google's index.
+
+# ---------- ITEC 1001 ----------
+- course_code: ITEC 1001
+  source: GGC Simple Syllabus
+  title: ""
+  url: TODO
+  term: Fall 2025
+  resource_type: syllabus
+  notes: >-
+    No publicly indexed Fall 2025 ITEC 1001 section found.
+    ITEC 1001 is NOT a Core IMPACTS course, and per GGC's published policy
+    ITEC 1001 syllabi are NOT required to be public until Fall 2026.
+    Tried: site:ggc.simplesyllabus.com ITEC 1001 (multiple variants).
+
+- course_code: ITEC 1001
+  source: GGC Simple Syllabus
+  title: ""
+  url: TODO
+  term: Spring 2026
+  resource_type: syllabus
+  notes: >-
+    No publicly indexed Spring 2026 ITEC 1001 section found.
+    ITEC 1001 is NOT Core IMPACTS, so it is not required to be public for
+    Spring 2026 either; this gap is policy-expected, not a search failure.
+
+# ---------- BIOL 1101K ----------
+- course_code: BIOL 1101K
+  source: GGC Simple Syllabus
+  title: "BIOL 1101K - Biological Sciences I wLab - Section 03 (CRN 81478) - Fall 2025"
+  url: https://ggc.simplesyllabus.com/doc/fsrgc6wkk/2025-Fall-BIOL-1101K-Section-03-(81478)-?mode=view
+  term: Fall 2025
+  resource_type: syllabus
+  subject_area: General Biology
+  notes: "Section 03 / CRN 81478. School of Science and Technology. Indexed by Google."
+
+- course_code: BIOL 1101K
+  source: GGC Simple Syllabus
+  title: ""
+  url: TODO
+  term: Spring 2026
+  resource_type: syllabus
+  notes: >-
+    No publicly indexed Spring 2026 BIOL 1101K section found.
+    Tried: site:ggc.simplesyllabus.com 2026 Spring BIOL 1101K + quoted slug.
+    BIOL 1101K is Core IMPACTS (Science) so a public section should exist but
+    is not yet in Google's index. Several Summer 2026 and Fall 2026 sections are
+    indexed (e.g. doc/c4logzzsj, doc/9wwazho3g).
+
+# ---------- BIOL 1102 ----------
+- course_code: BIOL 1102
+  source: GGC Simple Syllabus
+  title: "BIOL 1102 - Biological Sciences II - Section 03 (CRN 81500) - Fall 2025"
+  url: https://ggc.simplesyllabus.com/doc/xcij0rvjc/2025-Fall-BIOL-1102-Section-03-(81500)-?mode=view
+  term: Fall 2025
+  resource_type: syllabus
+  subject_area: General Biology
+  notes: >-
+    Section 03 / CRN 81500. Indexed by Google. Two other Fall 2025 sections
+    were also visible in search results (Section 07 / CRN 81098 at doc/hvncxz7v2,
+    Section 04 / CRN 80363 at doc/xbk4lmkf7); kept Section 03 as the
+    representative section per the one-per-term rule.
+
+- course_code: BIOL 1102
+  source: GGC Simple Syllabus
+  title: ""
+  url: TODO
+  term: Spring 2026
+  resource_type: syllabus
+  notes: >-
+    No publicly indexed Spring 2026 BIOL 1102 section found.
+    Tried: site:ggc.simplesyllabus.com 2026 Spring BIOL 1102 + quoted slug.
+    BIOL 1102 is Core IMPACTS (Science) so a public section should exist but
+    is not yet in Google's index.

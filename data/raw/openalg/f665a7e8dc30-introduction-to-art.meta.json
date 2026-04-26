@@ -1,0 +1,21 @@
+{
+  "url": "https://alg.manifoldapp.org/projects/introduction-to-art",
+  "final_url": "https://alg.manifoldapp.org/projects/introduction-to-art",
+  "http_status": 200,
+  "content_type": "text/html",
+  "content_length": 497361,
+  "etag": null,
+  "last_modified": "Sat, 25 Apr 2026 01:43:23 GMT",
+  "sha256": "4f2d87dab4dcf32a6eaed125798819f144fedf894f11818e44b4df25edf1effe",
+  "fetched_at": "2026-04-25T01:43:23.475555+00:00",
+  "last_checked": "2026-04-25T01:43:23.475555+00:00",
+  "course_code": "ARTS 1100",
+  "source": "Open ALG",
+  "title": "Introduction to Art: Design, Context, and Meaning",
+  "term": "",
+  "resource_type": "textbook",
+  "notes": "",
+  "mapping_rationale": "Direct subject match for ARTS 1100 Art Appreciation.",
+  "subject_area": "Art Appreciation",
+  "slug": "f665a7e8dc30-introduction-to-art"
+}

@@ -1,0 +1,21 @@
+{
+  "url": "https://alg.manifoldapp.org/projects/introduction-to-computing-principles-curated-resources",
+  "final_url": "https://alg.manifoldapp.org/projects/introduction-to-computing-principles-curated-resources",
+  "http_status": 200,
+  "content_type": "text/html",
+  "content_length": 468389,
+  "etag": null,
+  "last_modified": "Sat, 25 Apr 2026 01:43:31 GMT",
+  "sha256": "4ce3b62edf43c226d41e858b847f1a9fd940339b7282cc6a554bb2eb94b044c9",
+  "fetched_at": "2026-04-25T01:43:31.103883+00:00",
+  "last_checked": "2026-04-25T01:43:31.103883+00:00",
+  "course_code": "ITEC 1001",
+  "source": "Open ALG",
+  "title": "Introduction to Computing Principles Curated Resources",
+  "term": "",
+  "resource_type": "project",
+  "notes": "",
+  "mapping_rationale": "Intro to computing principles aligns with ITEC 1001 Intro to Computing.",
+  "subject_area": "Introductory Computing",
+  "slug": "97d394d52f02-introduction-to-computing-principles-curated-resources"
+}

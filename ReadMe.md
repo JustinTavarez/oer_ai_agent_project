@@ -98,6 +98,11 @@ The API runs at [http://localhost:8000](http://localhost:8000).
 
 If LM Studio is not running, the chat UI still works with placeholder replies until the frontend is wired to the backend `/chat` endpoint.
 
+## Project Status
+
+For the final hardening pass — what changed, validation results, the rubric
+review, and the demo plan — see [`docs/HARDENING_REPORT.md`](docs/HARDENING_REPORT.md).
+
 ## License
 
 See the repository for license information.

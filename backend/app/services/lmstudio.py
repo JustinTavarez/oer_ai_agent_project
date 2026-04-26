@@ -93,17 +93,25 @@ def _extract_resource_id(chunk_id: str) -> str:
 def build_context_pack(
     raw_results: List[Dict],
     course_code: Optional[str] = None,
+    max_resources: Optional[int] = None,
 ) -> List[Dict]:
     """Deduplicate, filter, and clean raw retrieval hits into a context pack.
 
     1. Group chunks by resource ID (split on '_chunk_').
-    2. Per resource: keep best-scoring chunk, merge metadata.
-    3. Filter resources whose best score is below MIN_SCORE_THRESHOLD.
+    2. Per resource: keep best-scoring chunk, merge metadata (incl. content_kind / term).
+    3. Filter resources whose best score is below MIN_SCORE_THRESHOLD,
+       except for GGC metadata_reference rows that came in already
+       course-matched (those carry no body text so they would otherwise be
+       silently dropped by the threshold).
     4. Boost same-course resources when course_code is provided.
     5. Suppress cross-course neighbors when enough same-course results exist.
-    6. Sort by best score descending, take top MAX_CONTEXT_RESOURCES.
+    6. Sort by best score descending, take top ``max_resources``
+       (default ``MAX_CONTEXT_RESOURCES`` when called from the LLM path).
     7. Return clean dicts with verified metadata fields.
     """
+    if max_resources is None or max_resources <= 0:
+        max_resources = MAX_CONTEXT_RESOURCES
+
     groups: Dict[str, List[Dict]] = defaultdict(list)
     for hit in raw_results:
         resource_id = _extract_resource_id(hit.get("id", ""))
@@ -113,11 +121,18 @@ def build_context_pack(
     for resource_id, chunks in groups.items():
         best = max(chunks, key=lambda c: c.get("score", 0.0))
         best_score = best.get("score", 0.0)
-
-        if best_score < MIN_SCORE_THRESHOLD:
-            continue
-
         meta = best.get("metadata", {})
+        content_kind = (meta.get("content_kind") or "extracted").strip()
+        course_matched = bool(best.get("course_match"))
+
+        # Threshold check, with a single carve-out: GGC metadata_reference
+        # entries that were already matched on course code are kept even
+        # when the embedding distance is large, because their semantic
+        # signal is intentionally weak (the body is just manifest fields).
+        if best_score < MIN_SCORE_THRESHOLD:
+            if not (content_kind == "metadata_reference" and course_matched):
+                continue
+
         resources.append({
             "resource_id": resource_id,
             "title": best.get("title", ""),
@@ -127,6 +142,8 @@ def build_context_pack(
             "url": best.get("url", ""),
             "resource_type": meta.get("resource_type", ""),
             "subject": meta.get("subject", ""),
+            "term": meta.get("term", ""),
+            "content_kind": content_kind or "extracted",
             "has_accessibility_info": meta.get("has_accessibility_info", False),
             "has_supplementary_materials": meta.get("has_supplementary_materials", False),
             "content": best.get("content", "")[:500],
@@ -148,7 +165,7 @@ def build_context_pack(
             ]
 
     resources.sort(key=lambda r: r["score"], reverse=True)
-    return resources[:MAX_CONTEXT_RESOURCES]
+    return resources[:max_resources]
 
 
 def _build_user_message(query: str, context_pack: List[Dict]) -> str:

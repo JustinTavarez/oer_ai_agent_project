@@ -1,0 +1,21 @@
+{
+  "url": "https://alg.manifoldapp.org/projects/compact-anthology-of-world-literature",
+  "final_url": "https://alg.manifoldapp.org/projects/compact-anthology-of-world-literature",
+  "http_status": 200,
+  "content_type": "text/html",
+  "content_length": 501868,
+  "etag": null,
+  "last_modified": null,
+  "sha256": "a1ef2ee1e062cc94335ce2132826aaf2cf80ae1ec492ffcf77d075f7afdb7da8",
+  "fetched_at": "2026-04-25T01:43:27.159993+00:00",
+  "last_checked": "2026-04-25T01:43:27.159993+00:00",
+  "course_code": "ENGL 1102",
+  "source": "Open ALG",
+  "title": "Compact Anthology of World Literature",
+  "term": "",
+  "resource_type": "textbook",
+  "notes": "",
+  "mapping_rationale": "Literature anthology supports ENGL 1102 literature/composition curriculum.",
+  "subject_area": "World Literature",
+  "slug": "254f2d5392ee-compact-anthology-of-world-literature"
+}

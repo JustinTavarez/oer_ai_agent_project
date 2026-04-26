@@ -21,7 +21,7 @@ const COURSES = [
 
 const SOURCES = [
   { value: "both", label: "Both" },
-  { value: "GGC Syllabi", label: "GGC Syllabi" },
+  { value: "GGC Simple Syllabus", label: "GGC Simple Syllabus" },
   { value: "Open ALG", label: "Open ALG" },
 ];
 
